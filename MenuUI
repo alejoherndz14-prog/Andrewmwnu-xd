@@ -1,1 +1,309 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local MarketplaceService = game:GetService("MarketplaceService")
+local HttpService = game:GetService("HttpService")
+local workspace = game:GetService("Workspace")
+local player = Players.LocalPlayer
+while not player do task.wait() player = Players.LocalPlayer end
+local camera = workspace.CurrentCamera
+local mouse = player:GetMouse()
 
+local fovRadius = 120
+local aimbotEnabled = false
+local autoShootEnabled = false
+local hitboxEnabled = false
+local hitboxSize = 10
+local teamCheckEnabled = true
+local espEnabled = false
+local espColor = Color3.fromRGB(255,255,255)
+local espSettings = {Glow=true, Name=true, Health=true, Distance=true}
+local flying = false
+local flySpeed = 50
+local aimbotTargetPart = "Cabeza"
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AndrewHub_Overlays"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.DisplayOrder = 999
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local espFolder = Instance.new("Folder")
+espFolder.Name = "AndrewESPFolder"
+espFolder.Parent = screenGui
+
+local function makeDraggable(guiObject, objectToMove)
+    local dragging, dragInput, dragStart, startPos
+    guiObject.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true dragStart = input.Position startPos = objectToMove.Position
+            input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
+        end
+    end)
+    guiObject.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            objectToMove.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset+delta.X, startPos.Y.Scale, startPos.Y.Offset+delta.Y)
+        end
+    end)
+end
+
+local WindUI
+local _version = "1.6.66_V50"
+local uiFileName = "AndrewHubUI_Cache_v".._version..".txt"
+local timeFileName = "AndrewHubUI_Cache_v".._version.."_Time.txt"
+local ok, result = pcall(function()
+    local cacheValido = false
+    if isfile and isfile(timeFileName) and readfile then
+        local savedTime = tonumber(readfile(timeFileName))
+        if savedTime and (os.time()-savedTime) < 86400 then cacheValido = true end
+    end
+    if cacheValido and isfile and isfile(uiFileName) then return loadstring(readfile(uiFileName))() end
+    local codigoUi = game:HttpGet("https://raw.githubusercontent.com/alejoherndz14-prog/Ui/refs/heads/main/UI")
+    if writefile then writefile(uiFileName, codigoUi) writefile(timeFileName, tostring(os.time())) end
+    return loadstring(codigoUi)()
+end)
+if ok and result then WindUI = result else warn("Error al cargar interfaz") return end
+
+local Window = WindUI:CreateWindow({
+    Title = "ANDREW <font color='#6e2e7e'>HUB</font> | DUELS",
+    Theme = "Violet",
+    Author = "by AndrewDev",
+    Icon = "rbxassetid://88158601145345",
+    Folder = "AndrewHub_WindUI",
+    Acrylic = false, Transparent = false, NewElements = false, HideSearchBar = true,
+    OpenButton = {Title="Open DrewHub", Icon="rbxassetid://88158601145345", CornerRadius=UDim.new(0,14), StrokeThickness=1.1, Enabled=true, Draggable=true, Scale=0.8, Color=ColorSequence.new(Color3.new(0,0,0))},
+    Topbar = {Height=44, ButtonsType="Default"}
+})
+
+local NotifContainer = Instance.new("Frame")
+NotifContainer.Name = "AstraMinimalNotifs"
+NotifContainer.Size = UDim2.new(0,300,0.5,0)
+NotifContainer.AnchorPoint = Vector2.new(1,1)
+NotifContainer.Position = UDim2.new(1,-20,1,-20)
+NotifContainer.BackgroundTransparency = 1
+NotifContainer.Parent = screenGui
+local layout = Instance.new("UIListLayout", NotifContainer)
+layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+layout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Padding = UDim.new(0,8)
+
+local function showBottomMessage(text)
+    task.spawn(function()
+        local frame = Instance.new("Frame")
+        frame.AutomaticSize = Enum.AutomaticSize.X
+        frame.Size = UDim2.new(0,0,0,28)
+        frame.BackgroundColor3 = Color3.fromRGB(20,21,25)
+        frame.BackgroundTransparency = 1
+        frame.ClipsDescendants = true
+        frame.Parent = NotifContainer
+        Instance.new("UICorner", frame).CornerRadius = UDim.new(0,6)
+        local padding = Instance.new("UIPadding", frame)
+        padding.PaddingLeft = UDim.new(0,12) padding.PaddingRight = UDim.new(0,12)
+        local stroke = Instance.new("UIStroke", frame)
+        stroke.Color = Color3.fromRGB(200,200,200) stroke.Thickness = 1 stroke.Transparency = 1
+        local textLabel = Instance.new("TextLabel", frame)
+        textLabel.AutomaticSize = Enum.AutomaticSize.X
+        textLabel.Size = UDim2.new(0,0,1,0)
+        textLabel.BackgroundTransparency = 1
+        textLabel.Text = text
+        textLabel.TextColor3 = Color3.fromRGB(240,240,240)
+        textLabel.Font = Enum.Font.GothamMedium
+        textLabel.TextSize = 13 textLabel.TextTransparency = 1
+        local TweenService = game:GetService("TweenService")
+        TweenService:Create(frame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency=0.15}):Play()
+        TweenService:Create(stroke, TweenInfo.new(0.25), {Transparency=0.5}):Play()
+        TweenService:Create(textLabel, TweenInfo.new(0.25), {TextTransparency=0}):Play()
+        task.wait(2.5)
+        TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {BackgroundTransparency=1}):Play()
+        TweenService:Create(stroke, TweenInfo.new(0.3), {Transparency=1}):Play()
+        TweenService:Create(textLabel, TweenInfo.new(0.3), {TextTransparency=1}):Play()
+        frame:Destroy()
+    end)
+end
+
+local MainSection = Window:Section({Title="Funciones Principales", Opened=true})
+local Tabs = {
+    Inicio = MainSection:Tab({Title="Inicio", Icon="solar:home-bold"}),
+    Aim = MainSection:Tab({Title="Aimbot", Icon="solar:target-bold"}),
+    KillAll = MainSection:Tab({Title="Kill All", Icon="solar:target-bold"}),
+    Vis = MainSection:Tab({Title="Visuales", Icon="solar:eye-bold"}),
+    Mov = MainSection:Tab({Title="Movimiento", Icon="solar:running-bold"})
+}
+
+Tabs.Inicio:Section({Title="Actualizaciones"})
+local fechaUpdate = "29 Julio 2026"
+local cambios = {"Interfaz completa restaurada","Eliminadas pestañas innecesarias","Mejorada compatibilidad en juegos","Quitado menú de Comunidad"}
+local lineas = {"<font color='#00ff80'><b>Cambios:</b></font>"}
+for _,t in ipairs(cambios) do table.insert(lineas, "<font color='#00ff80'>+ "..t.."</font>") end
+Tabs.Inicio:Paragraph({Title="Versión: "..fechaUpdate, Desc=table.concat(lineas,"\n")})
+local nombreEjecutor = identifyexecutor and identifyexecutor() or "Desconocido"
+Tabs.Inicio:Paragraph({Title="Ejecutor", Desc=nombreEjecutor})
+local gameNameStr = "Desconocido"
+pcall(function() gameNameStr = MarketplaceService:GetProductInfo(game.PlaceId).Name end)
+Tabs.Inicio:Paragraph({Title="Juego Actual", Desc=gameNameStr.."\nID: "..game.PlaceId})
+Tabs.Inicio:Section({Title="Ir a Juegos"})
+local TPS = game:GetService("TeleportService")
+local function irJuego(pid,nom) Tabs.Inicio:Button({Title=nom, Callback=function() showBottomMessage("Cambiando a "..nom); pcall(function() TPS:Teleport(pid,player) end) end}) end
+irJuego(142823291,"Murder Mystery 2")
+irJuego(135856908115931,"Duels")
+irJuego(74369636333825,"Murder Mystery V")
+
+local function esLaPistola(item)
+    if not item or not item:IsA("Tool") then return false end
+    local nom = string.lower(item.Name)
+    local prohib = {"cuchillo","knife","sword","fist","combat","punch","phone","wallet"}
+    for _,p in ipairs(prohib) do if nom:find(p) then return false end end
+    return true
+end
+local function estaEnLobby()
+    local c = player.Character if not c then return true end
+    if c:FindFirstChildOfClass("ForceField") then return true end
+    if player.Team then local tn = string.lower(player.Team.Name) if tn:find("lobby") or tn:find("spect") or tn:find("dead") then return true end end
+    return false
+end
+local function esEnemigo(p)
+    if p==player then return false end
+    if not teamCheckEnabled then return true end
+    return player.Team ~= p.Team
+end
+
+local deadZoneFrame = Instance.new("Frame")
+deadZoneFrame.Size = UDim2.new(0,150,0,150)
+deadZoneFrame.Position = UDim2.new(0.8,-75,0.8,-75)
+deadZoneFrame.BackgroundColor3 = Color3.fromRGB(255,50,50)
+deadZoneFrame.BackgroundTransparency = 0.5
+deadZoneFrame.Visible = false
+deadZoneFrame.Parent = screenGui
+Instance.new("UICorner", deadZoneFrame).CornerRadius = UDim.new(0,16)
+local dzLabel = Instance.new("TextLabel", deadZoneFrame)
+dzLabel.Size = UDim2.new(1,0,1,0)
+dzLabel.BackgroundTransparency = 1
+dzLabel.Text = "ZONA MUERTA"
+dzLabel.TextColor3 = Color3.new(1,1,1)
+dzLabel.Font = Enum.Font.GothamBold
+dzLabel.TextSize = 14
+makeDraggable(deadZoneFrame, deadZoneFrame)
+
+Tabs.Aim:Section({Title="Configuración"})
+Tabs.Aim:Toggle({Title="Activar Aimbot", Callback=function(v) aimbotEnabled=v end})
+Tabs.Aim:Toggle({Title="Auto Disparo", Callback=function(v) autoShootEnabled=v end})
+Tabs.Aim:Toggle({Title="Zona Muerta", Callback=function(v) deadZoneFrame.Visible=v end})
+Tabs.Aim:Slider({Title="Tamaño FOV", Step=1, Value={Min=20,Max=800,Default=120}, Callback=function(v) fovRadius=v end})
+Tabs.Aim:Dropdown({Title="Apuntar a", Values={"Cabeza","Torso","Cuerpo"}, Value="Cabeza", Callback=function(v) aimbotTargetPart=v end})
+Tabs.Aim:Toggle({Title="Verificar Equipo", Value=true, Callback=function(v) teamCheckEnabled=v end})
+Tabs.Aim:Section({Title="Hitbox"})
+Tabs.Aim:Toggle({Title="Aumentar Hitbox", Callback=function(v) hitboxEnabled=v end})
+Tabs.Aim:Slider({Title="Tamaño Hitbox", Step=1, Value={Min=2,Max=50,Default=10}, Callback=function(v) hitboxSize=v end})
+
+Tabs.KillAll:Section({Title="Kill All"})
+Tabs.KillAll:Toggle({Title="Activar Kill All", Desc="Mata enemigos cercanos", Callback=function(v) _G.killAllActivo=v end})
+
+Tabs.Vis:Section({Title="ESP Visual"})
+Tabs.Vis:Toggle({Title="Activar ESP", Callback=function(v) espEnabled=v end})
+Tabs.Vis:Toggle({Title="Mostrar Nombre", Value=true, Callback=function(v) espSettings.Name=v end})
+Tabs.Vis:Toggle({Title="Mostrar Vida", Value=true, Callback=function(v) espSettings.Health=v end})
+Tabs.Vis:Toggle({Title="Mostrar Distancia", Value=true, Callback=function(v) espSettings.Distance=v end})
+Tabs.Vis:Colorpicker({Title="Color ESP", Value=Color3.fromRGB(255,255,255), Callback=function(v) espColor=v end})
+
+Tabs.Mov:Section({Title="Movimiento"})
+local velocidad = 16
+local salto = 50
+Tabs.Mov:Slider({Title="Velocidad", Step=1, Value={Min=16,Max=200,Default=16}, Callback=function(v) velocidad=v end})
+Tabs.Mov:Slider({Title="Fuerza Salto", Step=1, Value={Min=50,Max=300,Default=50}, Callback=function(v) salto=v end})
+Tabs.Mov:Toggle({Title="Volar", Callback=function(v) flying=v end})
+
+RunService.Heartbeat:Connect(function()
+    local char = player.Character
+    if not char or not char:FindFirstChild("Humanoid") then return end
+    local hum = char.Humanoid
+    hum.WalkSpeed = velocidad
+    hum.JumpPower = salto
+    if flying then
+        local camDir = camera.CFrame.LookVector
+        local moveDir = Vector3.new()
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir += camDir end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir -= camDir end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir -= camDir:Cross(Vector3.new(0,1,0)).Unit end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir += camDir:Cross(Vector3.new(0,1,0)).Unit end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir += Vector3.new(0,1,0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveDir += Vector3.new(0,-1,0) end
+        if moveDir.Magnitude > 0 then char.HumanoidRootPart.Velocity = moveDir.Unit * flySpeed else char.HumanoidRootPart.Velocity = Vector3.new(0,0,0) end
+    end
+end)
+
+task.spawn(function()
+    while task.wait(0.05) do
+        if not espEnabled then for _,c in espFolder:GetChildren() do c:Destroy() end continue end
+        for _,p in ipairs(Players:GetPlayers()) do
+            if p~=player and esEnemigo(p) and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character.Humanoid.Health>0 then
+                local hrp = p.Character.HumanoidRootPart
+                local pos,vis = camera:WorldToViewportPoint(hrp.Position+Vector3.new(0,2,0))
+                local dist = math.floor((hrp.Position - camera.CFrame.Position).Magnitude)
+                local tag = espFolder:FindFirstChild("ESP_"..p.UserId) or Instance.new("TextLabel")
+                tag.Name = "ESP_"..p.UserId
+                tag.BackgroundTransparency = 1
+                tag.Font = Enum.Font.GothamBold
+                tag.TextSize = 12
+                tag.TextStrokeTransparency = 0
+                tag.TextColor3 = espColor
+                tag.Parent = espFolder
+                if vis then
+                    tag.Position = UDim2.new(0,pos.X,0,pos.Y-30)
+                    tag.Text = espSettings.Name and p.Name or ""
+                    tag.Text ..= espSettings.Health and "\nVida: "..math.floor(p.Character.Humanoid.Health) or ""
+                    tag.Text ..= espSettings.Distance and "\nDist: "..dist or ""
+                else tag.Text = "" end
+            else
+                if espFolder:FindFirstChild("ESP_"..p.UserId) then espFolder["ESP_"..p.UserId]:Destroy() end
+            end
+        end
+    end
+end)
+
+task.spawn(function()
+    while task.wait(0.1) do
+        if hitboxEnabled then
+            for _,p in ipairs(Players:GetPlayers()) do
+                if p~=player and esEnemigo(p) and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    local hrp = p.Character.HumanoidRootPart
+                    hrp.Size = Vector3.new(hitboxSize,hitboxSize,hitboxSize)
+                    hrp.Transparency = 0.7
+                    hrp.CanCollide = false
+                end
+            end
+        else
+            for _,p in ipairs(Players:GetPlayers()) do
+                if p~=player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    local hrp = p.Character.HumanoidRootPart
+                    hrp.Size = Vector3.new(2,2,1)
+                    hrp.Transparency = 1
+                    hrp.CanCollide = true
+                end
+            end
+        end
+    end
+end)
+
+task.spawn(function()
+    while task.wait(0.05) do
+        if _G.killAllActivo and not estaEnLobby() then
+            local myChar = player.Character if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then continue end
+            local myPos = myChar.HumanoidRootPart.CFrame
+            for _,p in ipairs(Players:GetPlayers()) do
+                if p~=player and esEnemigo(p) and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health>0 then
+                    p.Character.HumanoidRootPart.CFrame = myPos
+                end
+            end
+        end
+    end
+end)
+
+getgenv().AndrewHubCargado = true
