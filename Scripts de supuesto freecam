@@ -1,0 +1,4345 @@
+-- Script Path: game:GetService("CoreGui").RobloxGui.Modules.Server.FreeCamera.FreeCamera
+-- Took 0.05s to decompile.
+-- Executor: Delta (1.1.731.944)
+
+local v_u_1 = math.abs
+local v_u_2 = math.clamp
+local v_u_3 = math.exp
+local v_u_4 = math.rad
+local v_u_5 = math.sign
+local v_u_6 = math.sqrt
+local v_u_7 = math.tan
+local v_u_8 = game:GetService("ContextActionService")
+local v_u_9 = game:GetService("Players")
+local v_u_10 = game:GetService("RunService")
+local v_u_11 = game:GetService("StarterGui")
+local v_u_12 = game:GetService("UserInputService")
+local v_u_13 = game:GetService("Workspace")
+local v_u_14 = UserSettings().GameSettings
+local v_u_15 = game:GetService("Lighting")
+local v_u_16 = v_u_9.LocalPlayer
+if not v_u_16 then
+    v_u_9:GetPropertyChangedSignal("LocalPlayer"):Wait()
+    v_u_16 = v_u_9.LocalPlayer
+end
+local v_u_17 = nil
+local v_u_18 = nil
+local v_u_19 = v_u_13.CurrentCamera
+v_u_13:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+    -- upvalues: (copy) v_u_13, (ref) v_u_19
+    local v20 = v_u_13.CurrentCamera
+    if v20 then
+        v_u_19 = v20
+    end
+end)
+local v_u_21 = nil
+local v_u_22 = nil
+local v_u_23 = nil
+local v24, v25 = pcall(function()
+    return UserSettings():IsUserFeatureEnabled("UserExitFreecamBreaksWithShiftlock")
+end)
+local v_u_26 = v24 and v25
+local v27, v28 = pcall(function()
+    return UserSettings():IsUserFeatureEnabled("UserShowGuiHideToggles")
+end)
+local v_u_29 = v27 and v28
+local v30, v31 = pcall(function()
+    return UserSettings():IsUserFeatureEnabled("UserFixFreecamDeltaTimeCalculation")
+end)
+local v_u_32 = v30 and v31
+local v33, v34 = pcall(function()
+    return UserSettings():IsUserFeatureEnabled("UserFixFreecamGuiChangeVisibility2")
+end)
+local v_u_35 = v33 and v34
+local v36, v37 = pcall(function()
+    return UserSettings():IsUserFeatureEnabled("UserFreecamControlSpeed")
+end)
+local v_u_38 = v36 and v37
+local v39, v40 = pcall(function()
+    return UserSettings():IsUserFeatureEnabled("UserFreecamTiltControl")
+end)
+local v_u_41 = v39 and v40
+local v42, v43 = pcall(function()
+    return UserSettings():IsUserFeatureEnabled("UserFreecamSmoothnessControl")
+end)
+local v_u_44 = v42 and v43
+local v45, v46 = pcall(function()
+    return UserSettings():IsUserFeatureEnabled("UserFreecamGuiDestabilization")
+end)
+local v_u_47 = v45 and v46
+local v48, v49 = pcall(function()
+    return UserSettings():IsUserFeatureEnabled("UserFreecamDepthOfFieldEffect3")
+end)
+local v_u_50 = v48 and v49
+local v51, v52 = pcall(function()
+    return UserSettings():IsUserFeatureEnabled("UserFreecamPlayerLock2")
+end)
+local v_u_53 = v51 and v52
+local v54, v55 = pcall(function()
+    return UserSettings():IsUserFeatureEnabled("UserFreecamPlayerLockResetHeight")
+end)
+local v_u_56 = v54 and v55
+local v57, v58 = pcall(function()
+    return UserSettings():IsUserFeatureEnabled("UserFreecamCustomGui")
+end)
+local v_u_59 = v57 and v58
+local v60 = Enum.ContextActionPriority.Low.Value
+local v_u_61 = Enum.ContextActionPriority.High.Value
+local v_u_62 = { Enum.KeyCode.LeftShift, Enum.KeyCode.P }
+local v_u_63 = {
+    [Enum.KeyCode.Z] = true,
+    [Enum.KeyCode.C] = true
+}
+local v_u_64 = {
+    [Enum.KeyCode.ButtonL1] = true,
+    [Enum.KeyCode.ButtonR1] = true
+}
+local v_u_65 = {
+    [Enum.KeyCode.BackSlash] = true
+}
+local v_u_66 = {
+    [Enum.KeyCode.Slash] = true
+}
+local v_u_67 = {
+    [Enum.KeyCode.R] = true,
+    [Enum.KeyCode.T] = true
+}
+local v_u_68 = {
+    [Enum.KeyCode.G] = true
+}
+local v_u_69 = {
+    [Enum.KeyCode.X] = true
+}
+local v_u_70 = {
+    [Enum.KeyCode.L] = true
+}
+local v_u_71 = Vector2.new(0.75, 1) * 8
+local v_u_72 = 1.5
+local v_u_73 = 1
+local v_u_74 = 4
+local v_u_75 = 1
+local v_u_76 = {}
+local v_u_77 = 0
+local v_u_78 = {}
+local v_u_79 = nil
+local v_u_80 = nil
+local v_u_81 = nil
+local v_u_82 = nil
+local v_u_83 = nil
+local v_u_84 = false
+local v_u_85 = 20
+local v_u_86 = 0
+local v_u_87 = {}
+local v_u_88 = 1
+local v_u_89 = nil
+local v_u_90 = false
+local v_u_91 = false
+local v_u_92 = {}
+v_u_92.__index = v_u_92
+function v_u_92.new(p93, p94) -- name: new
+    -- upvalues: (copy) v_u_92
+    local v95 = v_u_92
+    local v96 = setmetatable({}, v95)
+    v96.f = p93
+    v96.p = p94
+    v96.v = p94 * 0
+    return v96
+end
+function v_u_92.Update(p97, p98, p99) -- name: Update
+    -- upvalues: (copy) v_u_3
+    local v100 = p97.f * 2 * 3.141592653589793
+    local v101 = p97.p
+    local v102 = p97.v
+    local v103 = p99 - v101
+    local v104 = v_u_3(-v100 * p98)
+    local v105 = p99 + (v102 * p98 - v103 * (v100 * p98 + 1)) * v104
+    local v106 = (v100 * p98 * (v103 * v100 - v102) + v102) * v104
+    p97.p = v105
+    p97.v = v106
+    return v105
+end
+function v_u_92.SetFreq(p107, p108) -- name: SetFreq
+    p107.f = p108
+end
+function v_u_92.Reset(p109, p110) -- name: Reset
+    p109.p = p110
+    p109.v = p110 * 0
+end
+local v_u_111 = Vector3.new()
+local v_u_112
+if v_u_41 then
+    v_u_112 = Vector3.new()
+else
+    v_u_112 = Vector2.new()
+end
+local v_u_113 = 0
+local v_u_114 = v_u_92.new(v_u_72, (Vector3.new()))
+local v_u_115 = v_u_92.new(v_u_73, Vector2.new())
+local v_u_116 = v_u_92.new(v_u_74, 0)
+local v_u_117 = v_u_92.new(v_u_75, 0)
+local v_u_118 = {}
+local function v_u_120(p119) -- name: thumbstickCurve
+    -- upvalues: (copy) v_u_5, (copy) v_u_1, (copy) v_u_3, (copy) v_u_2
+    return v_u_5(p119) * v_u_2((v_u_3(2 * ((v_u_1(p119) - 0.15) / 0.85)) - 1) / 6.38905609893065, 0, 1)
+end
+local v_u_121 = {
+    ["ButtonX"] = 0,
+    ["ButtonY"] = 0,
+    ["DPadDown"] = 0,
+    ["DPadUp"] = 0,
+    ["DPadLeft"] = 0,
+    ["DPadRight"] = 0,
+    ["ButtonL2"] = 0,
+    ["ButtonR2"] = 0,
+    ["ButtonL1"] = 0,
+    ["ButtonR1"] = 0,
+    ["Thumbstick1"] = nil,
+    ["Thumbstick2"] = nil,
+    ["Thumbstick1"] = Vector2.new(),
+    ["Thumbstick2"] = Vector2.new()
+}
+local v_u_122 = {
+    ["W"] = 0,
+    ["A"] = 0,
+    ["S"] = 0,
+    ["D"] = 0,
+    ["E"] = 0,
+    ["Q"] = 0,
+    ["U"] = 0,
+    ["H"] = 0,
+    ["J"] = 0,
+    ["K"] = 0,
+    ["I"] = 0,
+    ["Y"] = 0,
+    ["Up"] = 0,
+    ["Down"] = 0,
+    ["Left"] = 0,
+    ["Right"] = 0,
+    ["LeftShift"] = 0,
+    ["RightShift"] = 0,
+    ["Z"] = 0,
+    ["C"] = 0,
+    ["Comma"] = 0,
+    ["Period"] = 0,
+    ["LeftBracket"] = 0,
+    ["RightBracket"] = 0,
+    ["Semicolon"] = 0,
+    ["Quote"] = 0,
+    ["V"] = 0,
+    ["B"] = 0,
+    ["N"] = 0,
+    ["M"] = 0,
+    ["BackSlash"] = 0,
+    ["Minus"] = 0,
+    ["Equals"] = 0,
+    ["Slash"] = 0,
+    ["R"] = 0,
+    ["T"] = 0,
+    ["G"] = 0,
+    ["X"] = 0,
+    ["L"] = 0
+}
+local v_u_123 = {
+    ["Delta"] = nil,
+    ["MouseWheel"] = 0,
+    ["Delta"] = Vector2.new()
+}
+local v_u_124 = Vector2.new(1, 1) * 0.04908738521234052
+local v_u_125 = v_u_124 / 60
+local v_u_126 = Vector2.new(1, 1) * 0.39269908169872414
+local v_u_127 = {
+    ["FarIntensity"] = {
+        ["ADJ"] = 0.1,
+        ["MIN"] = 0,
+        ["MAX"] = 1
+    },
+    ["NearIntensity"] = {
+        ["ADJ"] = 0.1,
+        ["MIN"] = 0,
+        ["MAX"] = 1
+    },
+    ["FocusDistance"] = {
+        ["ADJ"] = 20,
+        ["MIN"] = 0,
+        ["MAX"] = 200
+    },
+    ["FocusRadius"] = {
+        ["ADJ"] = 5,
+        ["MIN"] = 0,
+        ["MAX"] = 50
+    }
+}
+local v_u_128 = 1
+local v_u_129 = 1
+local v_u_130 = 1
+function v_u_118.Vel(p131) -- name: Vel
+    -- upvalues: (ref) v_u_38, (ref) v_u_128, (copy) v_u_122, (copy) v_u_121, (copy) v_u_2, (ref) v_u_120, (copy) v_u_12
+    if v_u_38 then
+        v_u_128 = v_u_2(v_u_128 + p131 * (v_u_122.Up - v_u_122.Down + v_u_121.DPadUp - v_u_121.DPadDown) * 0.75, 0.01, 4)
+    else
+        v_u_128 = v_u_2(v_u_128 + p131 * (v_u_122.Up - v_u_122.Down) * 0.75, 0.01, 4)
+    end
+    local v132 = v_u_120(v_u_121.Thumbstick1.X)
+    local v133 = v_u_120(v_u_121.ButtonR2) - v_u_120(v_u_121.ButtonL2)
+    local v134 = v_u_120
+    local v135 = -v_u_121.Thumbstick1.Y
+    local v136 = Vector3.new(v132, v133, v134(v135)) * Vector3.new(1, 1, 1)
+    local v137 = v_u_122.D - v_u_122.A + v_u_122.K - v_u_122.H
+    local v138 = v_u_122.E - v_u_122.Q + v_u_122.I - v_u_122.Y
+    local v139 = v_u_122.S - v_u_122.W + v_u_122.J - v_u_122.U
+    local v140 = Vector3.new(v137, v138, v139) * Vector3.new(1, 1, 1)
+    local v141 = v_u_12:IsKeyDown(Enum.KeyCode.LeftShift) or v_u_12:IsKeyDown(Enum.KeyCode.RightShift)
+    return (v136 + v140) * (v_u_128 * (v141 and 0.25 or 1))
+end
+function v_u_118.Pan(p142) -- name: Pan
+    -- upvalues: (ref) v_u_120, (copy) v_u_121, (copy) v_u_126, (copy) v_u_123, (copy) v_u_124, (ref) v_u_32, (copy) v_u_125
+    local v143 = Vector2.new(v_u_120(v_u_121.Thumbstick2.Y), v_u_120(-v_u_121.Thumbstick2.X)) * v_u_126
+    local v144 = v_u_123.Delta * v_u_124
+    if v_u_32 and p142 > 0 then
+        v144 = v_u_123.Delta / p142 * v_u_125
+    end
+    v_u_123.Delta = Vector2.new()
+    return v143 + v144
+end
+function v_u_118.Fov(p145) -- name: Fov
+    -- upvalues: (ref) v_u_38, (ref) v_u_130, (copy) v_u_122, (copy) v_u_121, (copy) v_u_2, (copy) v_u_123, (ref) v_u_32
+    if v_u_38 then
+        v_u_130 = v_u_2(v_u_130 + p145 * (v_u_122.Right - v_u_122.Left + v_u_121.DPadRight - v_u_121.DPadLeft) * 0.75, 0.01, 4)
+    end
+    local v146 = (v_u_121.ButtonX - v_u_121.ButtonY) * 0.25
+    local v147 = v_u_123.MouseWheel * 1
+    if v_u_32 and p145 > 0 then
+        v147 = v_u_123.MouseWheel / p145 * 0.016666666666666666
+    end
+    v_u_123.MouseWheel = 0
+    if v_u_38 then
+        return (v146 + v147) * v_u_130
+    else
+        return v146 + v147
+    end
+end
+function v_u_118.Roll(p148) -- name: Roll
+    -- upvalues: (ref) v_u_129, (copy) v_u_122, (copy) v_u_2, (copy) v_u_121
+    v_u_129 = v_u_2(v_u_129 + p148 * (v_u_122.Period - v_u_122.Comma) * 0.75, 0.01, 4)
+    return ((v_u_121.ButtonR1 - v_u_121.ButtonL1) * 1 + (v_u_122.C - v_u_122.Z) * 1) * v_u_129
+end
+function v_u_118.SpringControl(p149) -- name: SpringControl
+    -- upvalues: (ref) v_u_50, (copy) v_u_12, (ref) v_u_72, (copy) v_u_122, (copy) v_u_2, (copy) v_u_114, (ref) v_u_73, (copy) v_u_115, (ref) v_u_74, (copy) v_u_116, (ref) v_u_75, (copy) v_u_117
+    if not (v_u_50 and (v_u_12:IsKeyDown(Enum.KeyCode.LeftShift) or v_u_12:IsKeyDown(Enum.KeyCode.RightShift) or (v_u_12:IsKeyDown(Enum.KeyCode.LeftControl) or v_u_12:IsKeyDown(Enum.KeyCode.RightControl)))) then
+        v_u_72 = v_u_2(v_u_72 + p149 * (v_u_122.RightBracket - v_u_122.LeftBracket) * 0.75, 0.01, 10)
+        v_u_114:SetFreq(v_u_72)
+        v_u_73 = v_u_2(v_u_73 + p149 * (v_u_122.Quote - v_u_122.Semicolon) * 0.75, 0.01, 10)
+        v_u_115:SetFreq(v_u_73)
+        v_u_74 = v_u_2(v_u_74 + p149 * (v_u_122.B - v_u_122.V) * 0.75, 0.01, 10)
+        v_u_116:SetFreq(v_u_74)
+        v_u_75 = v_u_2(v_u_75 + p149 * (v_u_122.M - v_u_122.N) * 0.75, 0.01, 10)
+        v_u_117:SetFreq(v_u_75)
+    end
+end
+function v_u_118.DoF(p150) -- name: DoF
+    -- upvalues: (copy) v_u_12, (ref) v_u_21, (copy) v_u_122, (copy) v_u_127, (copy) v_u_2
+    local v151 = v_u_12:IsKeyDown(Enum.KeyCode.LeftShift) or v_u_12:IsKeyDown(Enum.KeyCode.RightShift)
+    local v152 = v_u_12:IsKeyDown(Enum.KeyCode.LeftControl) or v_u_12:IsKeyDown(Enum.KeyCode.RightControl)
+    if v151 then
+        v_u_21.FarIntensity = v_u_2(v_u_21.FarIntensity + p150 * (v_u_122.RightBracket - v_u_122.LeftBracket) * v_u_127.FarIntensity.ADJ, v_u_127.FarIntensity.MIN, v_u_127.FarIntensity.MAX)
+        v_u_21.InFocusRadius = v_u_2(v_u_21.InFocusRadius + p150 * (v_u_122.Equals - v_u_122.Minus) * v_u_127.FocusRadius.ADJ, v_u_127.FocusRadius.MIN, v_u_127.FocusRadius.MAX)
+        return
+    elseif v152 then
+        v_u_21.NearIntensity = v_u_2(v_u_21.NearIntensity + p150 * (v_u_122.RightBracket - v_u_122.LeftBracket) * v_u_127.NearIntensity.ADJ, v_u_127.NearIntensity.MIN, v_u_127.NearIntensity.MAX)
+    else
+        v_u_21.FocusDistance = v_u_2(v_u_21.FocusDistance + p150 * (v_u_122.Equals - v_u_122.Minus) * v_u_127.FocusDistance.ADJ, v_u_127.FocusDistance.MIN, v_u_127.FocusDistance.MAX)
+    end
+end
+local function v_u_164(p153) -- name: handleDoubleTapReset
+    -- upvalues: (copy) v_u_76, (ref) v_u_77, (ref) v_u_112, (copy) v_u_117, (ref) v_u_50, (copy) v_u_64, (copy) v_u_121, (copy) v_u_63, (copy) v_u_122
+    local v154 = os.clock()
+    local v155 = v_u_76[p153]
+    if v155 and ((v155 and (v154 - v155 or -1) or -1) <= 0.25 and v154 - v_u_77 >= 0.1) then
+        local v156 = v_u_112.x
+        local v157 = v_u_112.y
+        v_u_112 = Vector3.new(v156, v157, 0)
+        v_u_117:Reset(0)
+        if v_u_50 then
+            local v158 = v_u_64
+            local v159 = v_u_121
+            for v160, _ in pairs(v158) do
+                if v159[v160.Name] then
+                    v159[v160.Name] = 0
+                end
+            end
+            local v161 = v_u_63
+            local v162 = v_u_122
+            for v163, _ in pairs(v161) do
+                if v162[v163.Name] then
+                    v162[v163.Name] = 0
+                end
+            end
+        else
+            v_u_121.ButtonL1 = 0
+            v_u_121.ButtonR1 = 0
+            v_u_122.C = 0
+            v_u_122.Z = 0
+        end
+        v_u_77 = v154
+    end
+    v_u_76[p153] = v154
+end
+local function v_u_168(p165) -- name: findPlayerLockRootPart
+    -- upvalues: (ref) v_u_87, (ref) v_u_88, (ref) v_u_84
+    if not v_u_87 or #v_u_87 < 1 then
+        return nil
+    end
+    for _ = 1, #v_u_87 do
+        v_u_88 = (v_u_88 - 1 + p165) % #v_u_87 + 1
+        local v166 = v_u_87[v_u_88]
+        if v166 then
+            v166 = v166.Character
+        end
+        if v166 then
+            local v167 = v166:FindFirstChildOfClass("Humanoid")
+            if v167 and v167.RootPart then
+                return v167.RootPart
+            end
+        end
+        if p165 == 0 then
+            p165 = 1
+        end
+    end
+    v_u_84 = false
+    return nil
+end
+local function v_u_196(_, p169, p170) -- name: Keypress
+    -- upvalues: (copy) v_u_122, (ref) v_u_41, (copy) v_u_63, (copy) v_u_164, (ref) v_u_50, (copy) v_u_65, (ref) v_u_21, (ref) v_u_78, (ref) v_u_19, (copy) v_u_15, (ref) v_u_80, (ref) v_u_81, (ref) v_u_53, (copy) v_u_66, (ref) v_u_84, (ref) v_u_85, (ref) v_u_56, (ref) v_u_86, (ref) v_u_89, (copy) v_u_168, (copy) v_u_67, (ref) v_u_87, (ref) v_u_59, (copy) v_u_68, (ref) v_u_18, (copy) v_u_69, (ref) v_u_90, (ref) v_u_23, (copy) v_u_70, (ref) v_u_91, (copy) v_u_11
+    v_u_122[p170.KeyCode.Name] = p169 == Enum.UserInputState.Begin and 1 or 0
+    if v_u_41 and (v_u_63[p170.KeyCode] and p170.UserInputState == Enum.UserInputState.Begin) then
+        v_u_164(p170.KeyCode)
+    end
+    if v_u_50 and (v_u_65[p170.KeyCode] and p170.UserInputState == Enum.UserInputState.Begin) then
+        if v_u_21.Enabled then
+            for _, v171 in ipairs(v_u_78) do
+                if v171.Parent then
+                    v171.Enabled = true
+                end
+            end
+            if v_u_80 then
+                v_u_80:Disconnect()
+                v_u_80 = nil
+            end
+            if v_u_81 then
+                v_u_81:Disconnect()
+                v_u_81 = nil
+            end
+            v_u_78 = {}
+        else
+            v_u_78 = {}
+            for _, v172 in ipairs(v_u_19:GetChildren()) do
+                if v172:IsA("DepthOfFieldEffect") and v172.Enabled then
+                    v_u_78[#v_u_78 + 1] = v172
+                    v172.Enabled = false
+                end
+            end
+            for _, v173 in ipairs(v_u_15:GetChildren()) do
+                if v173:IsA("DepthOfFieldEffect") and v173.Enabled then
+                    v_u_78[#v_u_78 + 1] = v173
+                    v173.Enabled = false
+                end
+            end
+            v_u_80 = v_u_19.ChildAdded:Connect(function(p174)
+                -- upvalues: (ref) v_u_78
+                if p174:IsA("DepthOfFieldEffect") and p174.Enabled then
+                    v_u_78[#v_u_78 + 1] = p174
+                    p174.Enabled = false
+                end
+            end)
+            v_u_81 = v_u_15.ChildAdded:Connect(function(p175)
+                -- upvalues: (ref) v_u_78
+                if p175:IsA("DepthOfFieldEffect") and p175.Enabled then
+                    v_u_78[#v_u_78 + 1] = p175
+                    p175.Enabled = false
+                end
+            end)
+        end
+        v_u_21.Enabled = not v_u_21.Enabled
+        local v176 = v_u_65
+        local v177 = v_u_122
+        for v178, _ in pairs(v176) do
+            if v177[v178.Name] then
+                v177[v178.Name] = 0
+            end
+        end
+    end
+    if v_u_53 then
+        if v_u_66[p170.KeyCode] and p170.UserInputState == Enum.UserInputState.Begin then
+            v_u_84 = not v_u_84
+            if v_u_84 then
+                v_u_85 = 20
+                if v_u_56 then
+                    v_u_86 = 0
+                end
+                v_u_89 = v_u_168(0)
+            end
+            local v179 = v_u_66
+            local v180 = v_u_122
+            for v181, _ in pairs(v179) do
+                if v180[v181.Name] then
+                    v180[v181.Name] = 0
+                end
+            end
+        end
+        if v_u_67[p170.KeyCode] and p170.UserInputState == Enum.UserInputState.Begin then
+            if v_u_84 and #v_u_87 > 0 then
+                v_u_89 = v_u_168(v_u_122.T - v_u_122.R)
+            end
+            local v182 = v_u_67
+            local v183 = v_u_122
+            for v184, _ in pairs(v182) do
+                if v183[v184.Name] then
+                    v183[v184.Name] = 0
+                end
+            end
+        end
+    end
+    if v_u_59 then
+        if v_u_68[p170.keyCode] and p170.UserInputState == Enum.UserInputState.Begin then
+            if v_u_18 and v_u_18.Parent then
+                v_u_18.Enabled = not v_u_18.Enabled
+            end
+            local v185 = v_u_68
+            local v186 = v_u_122
+            for v187, _ in pairs(v185) do
+                if v186[v187.Name] then
+                    v186[v187.Name] = 0
+                end
+            end
+        end
+        if v_u_69[p170.keyCode] and p170.UserInputState == Enum.UserInputState.Begin then
+            v_u_90 = not v_u_90
+            if v_u_23 then
+                local v188 = v_u_23.getScreenGuis()
+                for _, v189 in pairs(v188) do
+                    if v189.Parent and v189 ~= v_u_18 then
+                        v189.Enabled = v_u_90
+                    end
+                end
+            end
+            local v190 = v_u_69
+            local v191 = v_u_122
+            for v192, _ in pairs(v190) do
+                if v191[v192.Name] then
+                    v191[v192.Name] = 0
+                end
+            end
+        end
+        if v_u_70[p170.keyCode] and p170.UserInputState == Enum.UserInputState.Begin then
+            v_u_91 = not v_u_91
+            v_u_11:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, v_u_91)
+            local v193 = v_u_70
+            local v194 = v_u_122
+            for v195, _ in pairs(v193) do
+                if v194[v195.Name] then
+                    v194[v195.Name] = 0
+                end
+            end
+        end
+    end
+    return Enum.ContextActionResult.Sink
+end
+local function v_u_199(_, p197, p198) -- name: GpButton
+    -- upvalues: (copy) v_u_121, (ref) v_u_41, (copy) v_u_64, (copy) v_u_164
+    v_u_121[p198.KeyCode.Name] = p197 == Enum.UserInputState.Begin and 1 or 0
+    if v_u_41 and (v_u_64[p198.KeyCode] and p198.UserInputState == Enum.UserInputState.Begin) then
+        v_u_164(p198.KeyCode)
+    end
+    return Enum.ContextActionResult.Sink
+end
+local function v_u_202(_, _, p200) -- name: MousePan
+    -- upvalues: (copy) v_u_123
+    local v201 = p200.Delta
+    v_u_123.Delta = Vector2.new(-v201.y, -v201.x)
+    return Enum.ContextActionResult.Sink
+end
+local function v_u_204(_, _, p203) -- name: Thumb
+    -- upvalues: (copy) v_u_121
+    v_u_121[p203.KeyCode.Name] = p203.Position
+    return Enum.ContextActionResult.Sink
+end
+local function v_u_206(_, _, p205) -- name: Trigger
+    -- upvalues: (copy) v_u_121
+    v_u_121[p205.KeyCode.Name] = p205.Position.z
+    return Enum.ContextActionResult.Sink
+end
+local function v_u_208(_, _, p207) -- name: MouseWheel
+    -- upvalues: (copy) v_u_123
+    v_u_123[p207.UserInputType.Name] = -p207.Position.z
+    return Enum.ContextActionResult.Sink
+end
+function v_u_118.StartCapture() -- name: StartCapture
+    -- upvalues: (ref) v_u_38, (copy) v_u_8, (copy) v_u_196, (copy) v_u_61, (copy) v_u_199, (ref) v_u_41, (ref) v_u_44, (ref) v_u_50, (ref) v_u_53, (ref) v_u_59, (copy) v_u_202, (copy) v_u_208, (copy) v_u_206, (copy) v_u_204
+    if v_u_38 then
+        v_u_8:BindActionAtPriority("FreecamKeyboard", v_u_196, false, v_u_61, Enum.KeyCode.W, Enum.KeyCode.U, Enum.KeyCode.A, Enum.KeyCode.H, Enum.KeyCode.S, Enum.KeyCode.J, Enum.KeyCode.D, Enum.KeyCode.K, Enum.KeyCode.E, Enum.KeyCode.I, Enum.KeyCode.Q, Enum.KeyCode.Y)
+        v_u_8:BindActionAtPriority("FreecamKeyboardControlSpeed", v_u_196, false, v_u_61, Enum.KeyCode.Up, Enum.KeyCode.Down, Enum.KeyCode.Left, Enum.KeyCode.Right)
+        v_u_8:BindActionAtPriority("FreecamGamepadControlSpeed", v_u_199, false, v_u_61, Enum.KeyCode.DPadUp, Enum.KeyCode.DPadDown, Enum.KeyCode.DPadLeft, Enum.KeyCode.DPadRight)
+    else
+        v_u_8:BindActionAtPriority("FreecamKeyboard", v_u_196, false, v_u_61, Enum.KeyCode.W, Enum.KeyCode.U, Enum.KeyCode.A, Enum.KeyCode.H, Enum.KeyCode.S, Enum.KeyCode.J, Enum.KeyCode.D, Enum.KeyCode.K, Enum.KeyCode.E, Enum.KeyCode.I, Enum.KeyCode.Q, Enum.KeyCode.Y, Enum.KeyCode.Up, Enum.KeyCode.Down)
+    end
+    if v_u_41 then
+        v_u_8:BindActionAtPriority("FreecamKeyboardTiltControl", v_u_196, false, v_u_61, Enum.KeyCode.Z, Enum.KeyCode.C)
+        v_u_8:BindActionAtPriority("FreecamGamepadTiltControl", v_u_199, false, v_u_61, Enum.KeyCode.ButtonL1, Enum.KeyCode.ButtonR1)
+        v_u_8:BindActionAtPriority("FreecamKeyboardTiltControlSpeed", v_u_196, false, v_u_61, Enum.KeyCode.Comma, Enum.KeyCode.Period)
+        if v_u_44 then
+            v_u_8:BindActionAtPriority("FreecamKeyboardSmoothnessControl", v_u_196, false, v_u_61, Enum.KeyCode.LeftBracket, Enum.KeyCode.RightBracket, Enum.KeyCode.Semicolon, Enum.KeyCode.Quote, Enum.KeyCode.V, Enum.KeyCode.B, Enum.KeyCode.N, Enum.KeyCode.M)
+        end
+    end
+    if v_u_50 then
+        v_u_8:BindActionAtPriority("FreecamKeyboardDoFToggle", v_u_196, false, v_u_61, Enum.KeyCode.BackSlash)
+        v_u_8:BindActionAtPriority("FreecamKeyboardDoFControls", v_u_196, false, v_u_61, Enum.KeyCode.Minus, Enum.KeyCode.Equals)
+    end
+    if v_u_53 then
+        v_u_8:BindActionAtPriority("FreecamKeyboardPlayerLockToggle", v_u_196, false, v_u_61, Enum.KeyCode.Slash)
+        v_u_8:BindActionAtPriority("FreecamKeyboardPlayerLockSwitch", v_u_196, false, v_u_61, Enum.KeyCode.R, Enum.KeyCode.T)
+    end
+    if v_u_59 then
+        v_u_8:BindActionAtPriority("FreecamKeyboardCustomGuiToggle", v_u_196, false, v_u_61, Enum.KeyCode.G)
+        v_u_8:BindActionAtPriority("FreecamKeyboardPlayerGuiToggle", v_u_196, false, v_u_61, Enum.KeyCode.X)
+        v_u_8:BindActionAtPriority("FreecamKeyboardLeaderboardToggle", v_u_196, false, v_u_61, Enum.KeyCode.L)
+    end
+    v_u_8:BindActionAtPriority("FreecamMousePan", v_u_202, false, v_u_61, Enum.UserInputType.MouseMovement)
+    v_u_8:BindActionAtPriority("FreecamMouseWheel", v_u_208, false, v_u_61, Enum.UserInputType.MouseWheel)
+    v_u_8:BindActionAtPriority("FreecamGamepadButton", v_u_199, false, v_u_61, Enum.KeyCode.ButtonX, Enum.KeyCode.ButtonY)
+    v_u_8:BindActionAtPriority("FreecamGamepadTrigger", v_u_206, false, v_u_61, Enum.KeyCode.ButtonR2, Enum.KeyCode.ButtonL2)
+    v_u_8:BindActionAtPriority("FreecamGamepadThumbstick", v_u_204, false, v_u_61, Enum.KeyCode.Thumbstick1, Enum.KeyCode.Thumbstick2)
+end
+function v_u_118.StopCapture() -- name: StopCapture
+    -- upvalues: (ref) v_u_59, (ref) v_u_128, (ref) v_u_38, (ref) v_u_130, (ref) v_u_41, (ref) v_u_129, (copy) v_u_121, (copy) v_u_122, (copy) v_u_123, (copy) v_u_8, (ref) v_u_44, (ref) v_u_50, (ref) v_u_53
+    if not v_u_59 then
+        v_u_128 = 1
+        if v_u_38 then
+            v_u_130 = 1
+        end
+        if v_u_41 then
+            v_u_129 = 1
+        end
+    end
+    local v209 = v_u_121
+    for v210, v211 in pairs(v209) do
+        v209[v210] = v211 * 0
+    end
+    local v212 = v_u_122
+    for v213, v214 in pairs(v212) do
+        v212[v213] = v214 * 0
+    end
+    local v215 = v_u_123
+    for v216, v217 in pairs(v215) do
+        v215[v216] = v217 * 0
+    end
+    v_u_8:UnbindAction("FreecamKeyboard")
+    if v_u_38 then
+        v_u_8:UnbindAction("FreecamKeyboardControlSpeed")
+        v_u_8:UnbindAction("FreecamGamepadControlSpeed")
+    end
+    if v_u_41 then
+        v_u_8:UnbindAction("FreecamKeyboardTiltControl")
+        v_u_8:UnbindAction("FreecamGamepadTiltControl")
+        v_u_8:UnbindAction("FreecamKeyboardTiltControlSpeed")
+        if v_u_44 then
+            v_u_8:UnbindAction("FreecamKeyboardSmoothnessControl")
+        end
+    end
+    if v_u_50 then
+        v_u_8:UnbindAction("FreecamKeyboardDoFToggle")
+        v_u_8:UnbindAction("FreecamKeyboardDoFControls")
+    end
+    if v_u_53 then
+        v_u_8:UnbindAction("FreecamKeyboardPlayerLockToggle")
+        v_u_8:UnbindAction("FreecamKeyboardPlayerLockSwitch")
+    end
+    if v_u_59 then
+        v_u_8:UnbindAction("FreecamKeyboardCustomGuiToggle")
+        v_u_8:UnbindAction("FreecamKeyboardPlayerGuiToggle")
+        v_u_8:UnbindAction("FreecamKeyboardLeaderboardToggle")
+    end
+    v_u_8:UnbindAction("FreecamMousePan")
+    v_u_8:UnbindAction("FreecamMouseWheel")
+    v_u_8:UnbindAction("FreecamGamepadButton")
+    v_u_8:UnbindAction("FreecamGamepadTrigger")
+    v_u_8:UnbindAction("FreecamGamepadThumbstick")
+end
+function v_u_118.getNavSpeed() -- name: getNavSpeed
+    -- upvalues: (ref) v_u_128
+    return v_u_128
+end
+function v_u_118.getFovSpeed() -- name: getFovSpeed
+    -- upvalues: (ref) v_u_130
+    return v_u_130
+end
+function v_u_118.getRollSpeed() -- name: getRollSpeed
+    -- upvalues: (ref) v_u_129
+    return v_u_129
+end
+local function v_u_246(p218) -- name: StepFreecam
+    -- upvalues: (ref) v_u_44, (copy) v_u_118, (ref) v_u_50, (ref) v_u_21, (copy) v_u_114, (copy) v_u_115, (copy) v_u_116, (ref) v_u_41, (copy) v_u_117, (ref) v_u_113, (copy) v_u_4, (copy) v_u_7, (copy) v_u_6, (copy) v_u_2, (copy) v_u_71, (ref) v_u_112, (ref) v_u_111, (ref) v_u_53, (ref) v_u_84, (ref) v_u_89, (ref) v_u_85, (ref) v_u_86, (ref) v_u_59, (ref) v_u_22, (ref) v_u_18, (ref) v_u_72, (ref) v_u_73, (ref) v_u_74, (ref) v_u_75, (ref) v_u_38, (ref) v_u_87, (ref) v_u_88, (ref) v_u_19
+    if v_u_44 then
+        v_u_118.SpringControl(p218)
+    end
+    if v_u_50 and (v_u_21 and v_u_21.Parent) then
+        v_u_118.DoF(p218)
+    end
+    local v219 = v_u_114:Update(p218, v_u_118.Vel(p218))
+    local v220 = v_u_115:Update(p218, v_u_118.Pan(p218))
+    local v221 = v_u_116:Update(p218, v_u_118.Fov(p218))
+    local v222
+    if v_u_41 then
+        v222 = v_u_117:Update(p218, v_u_118.Roll(p218))
+    else
+        v222 = nil
+    end
+    local v223 = v_u_6(0.7002075382097097 / v_u_7((v_u_4(v_u_113 / 2))))
+    v_u_113 = v_u_2(v_u_113 + v221 * 300 * (p218 / v223), 1, 120)
+    local v224
+    if v_u_41 then
+        local v225 = v220 * v_u_71 * (p218 / v223)
+        local v226 = v_u_112
+        local v227 = v225.X
+        local v228 = v225.Y
+        local v229 = v222 * -1.5707963267948966 * (p218 / v223)
+        v_u_112 = v226 + Vector3.new(v227, v228, v229)
+        if v_u_44 then
+            local v230 = v_u_112.x % 6.283185307179586
+            local v231 = v_u_112.y % 6.283185307179586
+            local v232 = v_u_112.z % 6.283185307179586
+            v_u_112 = Vector3.new(v230, v231, v232)
+        else
+            local v233 = v_u_2(v_u_112.x, -1.5707963267948966, 1.5707963267948966)
+            local v234 = v_u_112.y % 6.283185307179586
+            local v235 = v_u_112.z
+            v_u_112 = Vector3.new(v233, v234, v235)
+        end
+        v224 = CFrame.new(v_u_111) * CFrame.fromOrientation(v_u_112.x, v_u_112.y, v_u_112.z) * CFrame.new(v219 * Vector3.new(64, 64, 64) * p218)
+    else
+        v_u_112 = v_u_112 + v220 * v_u_71 * (p218 / v223)
+        v_u_112 = Vector2.new(v_u_2(v_u_112.x, -1.5707963267948966, 1.5707963267948966), v_u_112.y % 6.283185307179586)
+        v224 = CFrame.new(v_u_111) * CFrame.fromOrientation(v_u_112.x, v_u_112.y, 0) * CFrame.new(v219 * Vector3.new(64, 64, 64) * p218)
+    end
+    if v_u_53 and (v_u_84 and v_u_89) then
+        local v236 = v219.Z * 64 * p218
+        local v237 = v219.Y * 64 * p218
+        v_u_85 = v_u_2(v_u_85 + v236, 5, 50)
+        v_u_86 = v_u_2(v_u_86 + v237, -10, 10)
+        local v238 = v_u_86
+        local v239 = CFrame.new(v_u_89.Position + Vector3.new(0, v238, 0))
+        local v240
+        if v_u_41 then
+            v240 = CFrame.fromOrientation(v_u_112.x, v_u_112.y, v_u_112.z)
+        else
+            v240 = CFrame.fromOrientation(v_u_112.x, v_u_112.y, 0)
+        end
+        v224 = v239 * v240 * CFrame.new(0, 0, v_u_85)
+    end
+    if v_u_59 and (v_u_22 and (v_u_22.Parent and (v_u_18 and (v_u_18.Parent and v_u_18.Enabled)))) then
+        local v241 = ""
+        if p218 > 0 then
+            local v242 = (v224.p - v_u_111) / p218
+            v241 = v241 .. string.format("Velocity: (%.1f, %.1f, %.1f)\n", v242.X, v242.Y, v242.Z)
+        end
+        local v243 = v241 .. string.format("FOV: %.1f\n", v_u_113)
+        if v_u_41 then
+            local v244 = string.format
+            local v245 = v_u_112.z
+            v243 = v243 .. v244("Tilt: %.1f\194\176\n", (math.deg(v245)))
+        end
+        if v_u_44 then
+            v243 = (((v243 .. string.format("Stiffness (Vel): %.1f\n", v_u_72)) .. string.format("Stiffness (Pan): %.1f\n", v_u_73)) .. string.format("Stiffness (FOV): %.1f\n", v_u_74)) .. string.format("Stiffness (Roll): %.1f\n", v_u_75)
+        end
+        if v_u_38 then
+            v243 = ((v243 .. string.format("Movement Speed: %.1f\n", v_u_118.getNavSpeed())) .. string.format("Zoom Speed: %.1f\n", v_u_118.getFovSpeed())) .. string.format("Tilt Speed: %.1f\n", v_u_118.getRollSpeed())
+        end
+        if v_u_50 then
+            if v_u_21 and (v_u_21.Parent and v_u_21.Enabled) then
+                v243 = ((((v243 .. string.format("Custom Depth Of Field: On\n")) .. string.format("Custom Depth Of Field Near Intensity: %.1f\n", v_u_21.NearIntensity)) .. string.format("Custom Depth Of Field Far Intensity: %.1f\n", v_u_21.FarIntensity)) .. string.format("Custom Depth Of Field Focus Distance: %.1f\n", v_u_21.FocusDistance)) .. string.format("Custom Depth Of Field Focus Radius: %.1f\n", v_u_21.InFocusRadius)
+            else
+                v243 = v243 .. string.format("Custom Depth Of Field: Off\n")
+            end
+        end
+        if v_u_53 then
+            if v_u_84 and #v_u_87 > 0 then
+                v243 = v243 .. string.format("Player Lock: %s\n", v_u_87[v_u_88].Name)
+            else
+                v243 = v243 .. string.format("Player Lock: Off\n")
+            end
+        end
+        v_u_22.Text = v243
+    end
+    v_u_111 = v224.p
+    v_u_19.CFrame = v224
+    v_u_19.Focus = v224
+    v_u_19.FieldOfView = v_u_113
+end
+local v_u_247 = {}
+local v_u_248 = nil
+local v_u_249 = nil
+local v_u_250 = nil
+local v_u_251 = nil
+local v_u_252 = nil
+local v_u_253 = nil
+local v_u_254 = {}
+local v_u_255 = {
+    ["Backpack"] = true,
+    ["Chat"] = true,
+    ["Health"] = true,
+    ["PlayerList"] = true
+}
+local v_u_256 = {
+    ["BadgesNotificationsActive"] = true,
+    ["PointsNotificationsActive"] = true
+}
+function v_u_247.Push() -- name: Push
+    -- upvalues: (copy) v_u_255, (copy) v_u_11, (copy) v_u_256, (ref) v_u_16, (ref) v_u_254, (ref) v_u_35, (ref) v_u_79, (ref) v_u_59, (ref) v_u_90, (ref) v_u_253, (ref) v_u_19, (ref) v_u_250, (ref) v_u_252, (ref) v_u_251, (ref) v_u_249, (copy) v_u_12, (ref) v_u_26, (copy) v_u_9, (copy) v_u_14, (ref) v_u_248
+    for v257 in pairs(v_u_255) do
+        v_u_255[v257] = v_u_11:GetCoreGuiEnabled(Enum.CoreGuiType[v257])
+        v_u_11:SetCoreGuiEnabled(Enum.CoreGuiType[v257], false)
+    end
+    for v258 in pairs(v_u_256) do
+        v_u_256[v258] = v_u_11:GetCore(v258)
+        v_u_11:SetCore(v258, false)
+    end
+    local v259 = v_u_16:FindFirstChildOfClass("PlayerGui")
+    if v259 then
+        for _, v260 in pairs(v259:GetChildren()) do
+            if v260:IsA("ScreenGui") and v260.Enabled then
+                v_u_254[#v_u_254 + 1] = v260
+                v260.Enabled = false
+            end
+        end
+        if v_u_35 then
+            v_u_79 = v259.ChildAdded:Connect(function(p261)
+                -- upvalues: (ref) v_u_254, (ref) v_u_59, (ref) v_u_90
+                if p261:IsA("ScreenGui") and p261.Enabled then
+                    v_u_254[#v_u_254 + 1] = p261
+                    if v_u_59 then
+                        p261.Enabled = v_u_90
+                        return
+                    end
+                    p261.Enabled = false
+                end
+            end)
+        end
+    end
+    v_u_253 = v_u_19.FieldOfView
+    v_u_19.FieldOfView = 70
+    v_u_250 = v_u_19.CameraType
+    v_u_19.CameraType = Enum.CameraType.Custom
+    v_u_252 = v_u_19.CFrame
+    v_u_251 = v_u_19.Focus
+    v_u_249 = v_u_12.MouseIconEnabled
+    v_u_12.MouseIconEnabled = false
+    if v_u_26 then
+        local v262 = v_u_9.LocalPlayer.DevEnableMouseLock
+        local v263 = v_u_9.LocalPlayer.DevComputerMovementMode == Enum.DevComputerMovementMode.Scriptable
+        local v264 = v262 and (v_u_14.ControlMode == Enum.ControlMode.MouseLockSwitch and v_u_14.ComputerMovementMode ~= Enum.ComputerMovementMode.ClickToMove)
+        if v264 then
+            v264 = not v263
+        end
+        if v264 then
+            v_u_248 = Enum.MouseBehavior.Default
+            ::l31::
+            v_u_12.MouseBehavior = Enum.MouseBehavior.Default
+            return
+        end
+    end
+    v_u_248 = v_u_12.MouseBehavior
+    goto l31
+end
+function v_u_247.Pop() -- name: Pop
+    -- upvalues: (copy) v_u_255, (copy) v_u_11, (copy) v_u_256, (ref) v_u_254, (ref) v_u_59, (ref) v_u_18, (ref) v_u_35, (ref) v_u_79, (ref) v_u_19, (ref) v_u_253, (ref) v_u_250, (ref) v_u_252, (ref) v_u_251, (copy) v_u_12, (ref) v_u_249, (ref) v_u_248
+    for v265, v266 in pairs(v_u_255) do
+        v_u_11:SetCoreGuiEnabled(Enum.CoreGuiType[v265], v266)
+    end
+    for v267, v268 in pairs(v_u_256) do
+        v_u_11:SetCore(v267, v268)
+    end
+    for _, v269 in pairs(v_u_254) do
+        if v_u_59 then
+            if v269.Parent and v269 ~= v_u_18 then
+                v269.Enabled = true
+            end
+        elseif v269.Parent then
+            v269.Enabled = true
+        end
+    end
+    if v_u_35 then
+        if v_u_79 then
+            v_u_79:Disconnect()
+            v_u_79 = nil
+        end
+        v_u_254 = {}
+    end
+    v_u_19.FieldOfView = v_u_253
+    v_u_253 = nil
+    v_u_19.CameraType = v_u_250
+    v_u_250 = nil
+    v_u_19.CFrame = v_u_252
+    v_u_252 = nil
+    v_u_19.Focus = v_u_251
+    v_u_251 = nil
+    v_u_12.MouseIconEnabled = v_u_249
+    v_u_249 = nil
+    v_u_12.MouseBehavior = v_u_248
+    v_u_248 = nil
+end
+function v_u_247.getScreenGuis() -- name: getScreenGuis
+    -- upvalues: (ref) v_u_254
+    return v_u_254
+end
+local function v_u_273(p270) -- name: removePlayerFromList
+    -- upvalues: (ref) v_u_87, (ref) v_u_88, (ref) v_u_84
+    for v271, v272 in ipairs(v_u_87) do
+        if v272 == p270 then
+            table.remove(v_u_87, v271)
+            if v_u_88 == v271 and v_u_84 then
+                v_u_84 = false
+                v_u_88 = 1
+            end
+            if v271 < v_u_88 then
+                v_u_88 = v_u_88 - 1
+            end
+            if v_u_88 > #v_u_87 or v_u_88 < 1 then
+                v_u_88 = 1
+                return
+            end
+            break
+        end
+    end
+end
+local function v_u_278() -- name: initializePlayerList
+    -- upvalues: (ref) v_u_87, (copy) v_u_9, (ref) v_u_16, (ref) v_u_88, (ref) v_u_82, (ref) v_u_83, (copy) v_u_273
+    v_u_87 = v_u_9:GetPlayers()
+    for v274, v275 in ipairs(v_u_87) do
+        if v275 == v_u_16 then
+            v_u_88 = v274
+            break
+        end
+    end
+    v_u_82 = v_u_9.PlayerAdded:Connect(function(p276)
+        -- upvalues: (ref) v_u_87
+        local v277 = v_u_87
+        table.insert(v277, p276)
+    end)
+    v_u_83 = v_u_9.PlayerRemoving:Connect(v_u_273)
+end
+local function v_u_280() -- name: StartFreecam
+    -- upvalues: (ref) v_u_53, (copy) v_u_278, (ref) v_u_47, (ref) v_u_29, (ref) v_u_19, (ref) v_u_41, (ref) v_u_112, (ref) v_u_111, (ref) v_u_113, (copy) v_u_114, (copy) v_u_115, (copy) v_u_116, (copy) v_u_117, (ref) v_u_59, (ref) v_u_44, (ref) v_u_72, (ref) v_u_73, (ref) v_u_74, (ref) v_u_75, (ref) v_u_17, (ref) v_u_16, (ref) v_u_18, (ref) v_u_22, (ref) v_u_247, (ref) v_u_50, (ref) v_u_21, (copy) v_u_10, (copy) v_u_246, (copy) v_u_118
+    if v_u_53 then
+        v_u_278()
+    end
+    if not v_u_47 and v_u_29 then
+        script:SetAttribute("FreecamEnabled", true)
+    end
+    local v279 = v_u_19.CFrame
+    if v_u_41 then
+        v_u_112 = Vector3.new(v279:toEulerAnglesYXZ())
+    else
+        v_u_112 = Vector2.new(v279:toEulerAnglesYXZ())
+    end
+    v_u_111 = v279.p
+    v_u_113 = v_u_19.FieldOfView
+    v_u_114:Reset((Vector3.new()))
+    v_u_115:Reset(Vector2.new())
+    v_u_116:Reset(0)
+    if v_u_41 then
+        v_u_117:Reset(0)
+    end
+    if not v_u_59 and v_u_44 then
+        v_u_72 = 1.5
+        v_u_73 = 1
+        v_u_74 = 4
+        v_u_75 = 1
+    end
+    if v_u_59 then
+        v_u_17 = v_u_16:WaitForChild("PlayerGui")
+        v_u_18 = v_u_17:WaitForChild("Freecam")
+        if not (v_u_22 and v_u_22.Parent) then
+            v_u_22 = Instance.new("TextLabel")
+            v_u_22.Name = "FreecamCustomGui"
+            v_u_22.TextColor3 = Color3.new(1, 1, 1)
+            v_u_22.Font = Enum.Font.SourceSansBold
+            v_u_22.TextSize = 20
+            v_u_22.TextStrokeTransparency = 0
+            v_u_22.BackgroundTransparency = 1
+            v_u_22.TextWrapped = true
+            v_u_22.TextXAlignment = Enum.TextXAlignment.Right
+            v_u_22.AutomaticSize = Enum.AutomaticSize.Y
+            v_u_22.AnchorPoint = Vector2.new(1, 1)
+            v_u_22.Position = UDim2.new(1, -10, 1, -10)
+            v_u_22.Size = UDim2.new(0, 400, 0, 0)
+            v_u_22.Parent = v_u_18
+        end
+    end
+    v_u_247.Push()
+    if v_u_50 and not (v_u_21 and v_u_21.Parent) then
+        v_u_21 = Instance.new("DepthOfFieldEffect")
+        v_u_21.Enabled = false
+        v_u_21.Name = "FreecamDepthOfField"
+        v_u_21.Parent = v_u_19
+    end
+    v_u_10:BindToRenderStep("Freecam", Enum.RenderPriority.Camera.Value, v_u_246)
+    v_u_118.StartCapture()
+end
+local function v_u_282() -- name: StopFreecam
+    -- upvalues: (ref) v_u_47, (ref) v_u_29, (ref) v_u_53, (ref) v_u_82, (ref) v_u_83, (ref) v_u_84, (ref) v_u_88, (ref) v_u_87, (ref) v_u_50, (ref) v_u_21, (ref) v_u_78, (ref) v_u_80, (ref) v_u_81, (ref) v_u_59, (ref) v_u_18, (ref) v_u_90, (ref) v_u_91, (copy) v_u_118, (copy) v_u_10, (ref) v_u_247
+    if not v_u_47 and v_u_29 then
+        script:SetAttribute("FreecamEnabled", false)
+    end
+    if v_u_53 then
+        if v_u_82 then
+            v_u_82:Disconnect()
+            v_u_82 = nil
+        end
+        if v_u_83 then
+            v_u_83:Disconnect()
+            v_u_83 = nil
+        end
+        v_u_84 = false
+        v_u_88 = 1
+        v_u_87 = {}
+    end
+    if v_u_50 and (v_u_21 and v_u_21.Parent) then
+        if v_u_21.Enabled then
+            for _, v281 in ipairs(v_u_78) do
+                if v281.Parent then
+                    v281.Enabled = true
+                end
+            end
+            if v_u_80 then
+                v_u_80:Disconnect()
+                v_u_80 = nil
+            end
+            if v_u_81 then
+                v_u_81:Disconnect()
+                v_u_81 = nil
+            end
+            v_u_78 = {}
+        end
+        v_u_21.Enabled = false
+    end
+    if v_u_59 then
+        if v_u_18 and v_u_18.Parent then
+            v_u_18.Enabled = false
+        end
+        v_u_90 = false
+        v_u_91 = false
+    end
+    v_u_118.StopCapture()
+    v_u_10:UnbindFromRenderStep("Freecam")
+    v_u_247.Pop()
+end
+local v_u_283 = false
+local function v_u_286(p284) -- name: CheckMacro
+    -- upvalues: (copy) v_u_12, (ref) v_u_283, (copy) v_u_282, (copy) v_u_280, (ref) v_u_47
+    for v285 = 1, #p284 - 1 do
+        if not v_u_12:IsKeyDown(p284[v285]) then
+            return
+        end
+    end
+    if v_u_283 then
+        v_u_282()
+    else
+        v_u_280()
+    end
+    v_u_283 = not v_u_283
+    if v_u_47 then
+        script:SetAttribute("FreecamEnabled", v_u_283)
+    end
+end
+v_u_8:BindActionAtPriority("FreecamToggle", function(_, p287, p288) -- name: HandleActivationInput
+    -- upvalues: (copy) v_u_62, (copy) v_u_286
+    if p287 == Enum.UserInputState.Begin and p288.KeyCode == v_u_62[#v_u_62] then
+        v_u_286(v_u_62)
+    end
+    return Enum.ContextActionResult.Pass
+end, false, v60, v_u_62[#v_u_62])
+if v_u_47 or v_u_29 then
+    script:SetAttribute("FreecamEnabled", v_u_283)
+    script:GetAttributeChangedSignal("FreecamEnabled"):Connect(function()
+        -- upvalues: (ref) v_u_283, (copy) v_u_280, (copy) v_u_282
+        local v289 = script:GetAttribute("FreecamEnabled")
+        if typeof(v289) == "boolean" then
+            if v289 ~= v_u_283 then
+                if v289 then
+                    v_u_280()
+                    v_u_283 = true
+                    return
+                end
+                v_u_282()
+                v_u_283 = false
+            end
+        else
+            script:SetAttribute("FreecamEnabled", v_u_283)
+        end
+    end)
+end
+return {}
+-- Script Path: game:GetService("CoreGui").RobloxGui.Modules.Server.FreeCamera.FreeCameraIAS
+-- Took 0.07s to decompile.
+-- Executor: Delta (1.1.731.944)
+
+local v_u_1 = math.clamp
+local v_u_2 = math.exp
+local v_u_3 = math.rad
+local v_u_4 = math.sqrt
+local v_u_5 = math.tan
+local v_u_6 = game:GetService("Players")
+local v_u_7 = game:GetService("RunService")
+local v_u_8 = game:GetService("StarterGui")
+local v_u_9 = game:GetService("UserInputService")
+local v_u_10 = game:GetService("Workspace")
+local v_u_11 = game:GetService("Lighting")
+local v_u_12 = {
+    ["AttributeName"] = "FreecamEnabled",
+    ["Thumbstick"] = nil,
+    ["DoubleTap"] = nil,
+    ["PlayerLock"] = nil,
+    ["Movement"] = nil,
+    ["Pan"] = nil,
+    ["Fov"] = nil,
+    ["Roll"] = nil,
+    ["DoF"] = nil,
+    ["Bloom"] = nil,
+    ["Blur"] = nil,
+    ["ColorCorrection"] = nil,
+    ["SunRays"] = nil,
+    ["Keys"] = nil,
+    ["Thumbstick"] = {
+        ["Curvature"] = 2
+    },
+    ["DoubleTap"] = {
+        ["Threshold"] = 0.25,
+        ["Debounce"] = 0.1
+    },
+    ["PlayerLock"] = {
+        ["DefaultZoom"] = 20,
+        ["MinZoom"] = 5,
+        ["MaxZoom"] = 50,
+        ["DefaultHeight"] = 0,
+        ["HeightRange"] = 10
+    },
+    ["Movement"] = {
+        ["Gain"] = Vector3.new(64, 64, 64),
+        ["AdjSpeed"] = 0.75,
+        ["MinSpeed"] = 0.01,
+        ["MaxSpeed"] = 4,
+        ["ShiftMul"] = 0.25,
+        ["Stiffness"] = 1.5,
+        ["AdjStiffness"] = 0.75,
+        ["MinStiffness"] = 0.01,
+        ["MaxStiffness"] = 10
+    },
+    ["Pan"] = {
+        ["Gain"] = nil,
+        ["MouseScale"] = nil,
+        ["TrackpadScale"] = nil,
+        ["GamepadScale"] = nil,
+        ["AdjSpeed"] = 0.75,
+        ["MinSpeed"] = 0.01,
+        ["MaxSpeed"] = 4,
+        ["Stiffness"] = 1,
+        ["AdjStiffness"] = 0.75,
+        ["MinStiffness"] = 0.01,
+        ["MaxStiffness"] = 10,
+        ["Gain"] = Vector2.new(0.75, 1) * 8,
+        ["MouseScale"] = Vector2.new(0.0008181230868723419, -0.0008181230868723419),
+        ["TrackpadScale"] = Vector2.new(0.011453723216212788, -0.011453723216212788),
+        ["GamepadScale"] = Vector2.new(0.39269908169872414, 0.39269908169872414)
+    },
+    ["Fov"] = {
+        ["Gain"] = 300,
+        ["WheelScale"] = -0.01667,
+        ["PinchScale"] = -0.008,
+        ["GamepadScale"] = 0.25,
+        ["AdjSpeed"] = 0.75,
+        ["MinSpeed"] = 0.01,
+        ["MaxSpeed"] = 4,
+        ["Stiffness"] = 4,
+        ["AdjStiffness"] = 0.75,
+        ["MinStiffness"] = 0.01,
+        ["MaxStiffness"] = 10
+    },
+    ["Roll"] = {
+        ["Gain"] = -1.5707963267948966,
+        ["AdjSpeed"] = 0.75,
+        ["MinSpeed"] = 0.01,
+        ["MaxSpeed"] = 4,
+        ["Stiffness"] = 1,
+        ["AdjStiffness"] = 0.75,
+        ["MinStiffness"] = 0.01,
+        ["MaxStiffness"] = 10
+    },
+    ["DoF"] = {
+        ["FarIntensity"] = {
+            ["Adj"] = 0.1,
+            ["Min"] = 0,
+            ["Max"] = 1
+        },
+        ["NearIntensity"] = {
+            ["Adj"] = 0.1,
+            ["Min"] = 0,
+            ["Max"] = 1
+        },
+        ["FocusDistance"] = {
+            ["Adj"] = 20,
+            ["Min"] = 0,
+            ["Max"] = 200
+        },
+        ["FocusRadius"] = {
+            ["Adj"] = 5,
+            ["Min"] = 0,
+            ["Max"] = 50
+        }
+    },
+    ["Bloom"] = {
+        ["Intensity"] = {
+            ["Adj"] = 0.05,
+            ["Min"] = 0,
+            ["Max"] = 1
+        },
+        ["Size"] = {
+            ["Adj"] = 2,
+            ["Min"] = 0,
+            ["Max"] = 56
+        },
+        ["Threshold"] = {
+            ["Adj"] = 0.05,
+            ["Min"] = 0,
+            ["Max"] = 1
+        }
+    },
+    ["Blur"] = {
+        ["Size"] = {
+            ["Adj"] = 2,
+            ["Min"] = 0,
+            ["Max"] = 56
+        }
+    },
+    ["ColorCorrection"] = {
+        ["Brightness"] = {
+            ["Adj"] = 0.05,
+            ["Min"] = -1,
+            ["Max"] = 1
+        },
+        ["Contrast"] = {
+            ["Adj"] = 0.05,
+            ["Min"] = -1,
+            ["Max"] = 1
+        },
+        ["Saturation"] = {
+            ["Adj"] = 0.05,
+            ["Min"] = -1,
+            ["Max"] = 1
+        }
+    },
+    ["SunRays"] = {
+        ["Intensity"] = {
+            ["Adj"] = 0.05,
+            ["Min"] = 0,
+            ["Max"] = 1
+        },
+        ["Spread"] = {
+            ["Adj"] = 0.05,
+            ["Min"] = 0,
+            ["Max"] = 1
+        }
+    }
+}
+local v13 = {
+    ["Toggle"] = {
+        ["Keyboard"] = Enum.KeyCode.P,
+        ["Modifier"] = Enum.KeyCode.LeftShift
+    },
+    ["Pan"] = {
+        ["Mouse"] = Enum.KeyCode.MouseDelta,
+        ["Trackpad"] = Enum.KeyCode.TrackpadPan,
+        ["Gamepad"] = Enum.KeyCode.Thumbstick2
+    }
+}
+local v14 = {
+    ["Keyboard"] = {
+        ["Up"] = Enum.KeyCode.W,
+        ["Down"] = Enum.KeyCode.S,
+        ["Left"] = Enum.KeyCode.A,
+        ["Right"] = Enum.KeyCode.D
+    },
+    ["Gamepad"] = Enum.KeyCode.Thumbstick1
+}
+v13.MovementMove = v14
+local v15 = {
+    ["Keyboard"] = {
+        ["Up"] = Enum.KeyCode.E,
+        ["Down"] = Enum.KeyCode.Q
+    },
+    ["Gamepad"] = {
+        ["Up"] = Enum.KeyCode.ButtonR2,
+        ["Down"] = Enum.KeyCode.ButtonL2
+    }
+}
+v13.MovementElevate = v15
+local v16 = {
+    ["Toggle"] = {
+        ["Keyboard"] = Enum.KeyCode.Up,
+        ["Gamepad"] = Enum.KeyCode.DPadUp
+    },
+    ["Next"] = {
+        ["Keyboard"] = Enum.KeyCode.Down,
+        ["Gamepad"] = Enum.KeyCode.DPadDown
+    }
+}
+local v17 = {
+    ["Up"] = {
+        ["Keyboard"] = Enum.KeyCode.Right,
+        ["Gamepad"] = Enum.KeyCode.DPadRight
+    },
+    ["Down"] = {
+        ["Keyboard"] = Enum.KeyCode.Left,
+        ["Gamepad"] = Enum.KeyCode.DPadLeft
+    }
+}
+v16.Axis = v17
+v13.ModeSelect = v16
+local v18 = {
+    ["Mouse"] = Enum.KeyCode.MouseWheel,
+    ["TrackpadPinch"] = Enum.KeyCode.TrackpadPinch,
+    ["Gamepad"] = {
+        ["Up"] = Enum.KeyCode.ButtonX,
+        ["Down"] = Enum.KeyCode.ButtonY
+    }
+}
+v13.Fov = v18
+local v19 = {
+    ["Keyboard"] = {
+        ["Up"] = Enum.KeyCode.C,
+        ["Down"] = Enum.KeyCode.Z
+    },
+    ["Gamepad"] = {
+        ["Up"] = Enum.KeyCode.ButtonR1,
+        ["Down"] = Enum.KeyCode.ButtonL1
+    }
+}
+v13.Tilt = v19
+v13.Shift = {
+    ["KeyboardPrimary"] = Enum.KeyCode.LeftShift,
+    ["KeyboardSecondary"] = Enum.KeyCode.RightShift
+}
+v_u_12.Keys = v13
+local v20 = {}
+local v21 = {
+    ["name"] = "FreecamToggleAction",
+    ["type"] = nil,
+    ["bindings"] = nil,
+    ["type"] = Enum.InputActionType.Bool,
+    ["bindings"] = {
+        {
+            ["keyCode"] = v_u_12.Keys.Toggle.Keyboard,
+            ["primaryModifier"] = v_u_12.Keys.Toggle.Modifier
+        }
+    }
+}
+v20.Toggle = v21
+local v22 = {
+    ["name"] = "PanAction",
+    ["type"] = nil,
+    ["bindings"] = nil,
+    ["type"] = Enum.InputActionType.Direction2D,
+    ["bindings"] = {
+        {
+            ["keyCode"] = v_u_12.Keys.Pan.Mouse,
+            ["vector2Scale"] = v_u_12.Pan.MouseScale
+        },
+        {
+            ["keyCode"] = v_u_12.Keys.Pan.Trackpad,
+            ["vector2Scale"] = v_u_12.Pan.TrackpadScale
+        },
+        {
+            ["keyCode"] = v_u_12.Keys.Pan.Gamepad,
+            ["responseCurve"] = v_u_12.Thumbstick.Curvature,
+            ["vector2Scale"] = v_u_12.Pan.GamepadScale
+        }
+    }
+}
+v20.Pan = v22
+local v23 = {
+    ["name"] = "MovementMoveAction",
+    ["type"] = nil,
+    ["bindings"] = nil,
+    ["type"] = Enum.InputActionType.Direction2D,
+    ["bindings"] = {
+        {
+            ["up"] = v_u_12.Keys.MovementMove.Keyboard.Up,
+            ["down"] = v_u_12.Keys.MovementMove.Keyboard.Down,
+            ["left"] = v_u_12.Keys.MovementMove.Keyboard.Left,
+            ["right"] = v_u_12.Keys.MovementMove.Keyboard.Right
+        },
+        {
+            ["keyCode"] = v_u_12.Keys.MovementMove.Gamepad,
+            ["responseCurve"] = v_u_12.Thumbstick.Curvature
+        }
+    }
+}
+v20.MovementMove = v23
+local v24 = {
+    ["name"] = "MovementElevateAction",
+    ["type"] = nil,
+    ["bindings"] = nil,
+    ["type"] = Enum.InputActionType.Direction1D,
+    ["bindings"] = {
+        {
+            ["up"] = v_u_12.Keys.MovementElevate.Keyboard.Up,
+            ["down"] = v_u_12.Keys.MovementElevate.Keyboard.Down
+        },
+        {
+            ["up"] = v_u_12.Keys.MovementElevate.Gamepad.Up,
+            ["down"] = v_u_12.Keys.MovementElevate.Gamepad.Down
+        }
+    }
+}
+v20.MovementElevate = v24
+local v25 = {
+    ["name"] = "FovAction",
+    ["type"] = nil,
+    ["bindings"] = nil,
+    ["type"] = Enum.InputActionType.Direction1D,
+    ["bindings"] = {
+        {
+            ["keyCode"] = v_u_12.Keys.Fov.Mouse,
+            ["scale"] = v_u_12.Fov.WheelScale
+        },
+        {
+            ["keyCode"] = v_u_12.Keys.Fov.TrackpadPinch,
+            ["scale"] = v_u_12.Fov.PinchScale
+        },
+        {
+            ["up"] = v_u_12.Keys.Fov.Gamepad.Up,
+            ["down"] = v_u_12.Keys.Fov.Gamepad.Down,
+            ["scale"] = v_u_12.Fov.GamepadScale
+        }
+    }
+}
+v20.Fov = v25
+local v26 = {
+    ["name"] = "TiltAction",
+    ["type"] = nil,
+    ["bindings"] = nil,
+    ["type"] = Enum.InputActionType.Direction1D,
+    ["bindings"] = {
+        {
+            ["up"] = v_u_12.Keys.Tilt.Keyboard.Up,
+            ["down"] = v_u_12.Keys.Tilt.Keyboard.Down
+        },
+        {
+            ["up"] = v_u_12.Keys.Tilt.Gamepad.Up,
+            ["down"] = v_u_12.Keys.Tilt.Gamepad.Down
+        }
+    }
+}
+v20.Tilt = v26
+local v27 = {
+    ["name"] = "ShiftAction",
+    ["type"] = nil,
+    ["bindings"] = nil,
+    ["type"] = Enum.InputActionType.Bool,
+    ["bindings"] = {
+        {
+            ["keyCode"] = v_u_12.Keys.Shift.KeyboardPrimary
+        },
+        {
+            ["keyCode"] = v_u_12.Keys.Shift.KeyboardSecondary
+        }
+    }
+}
+v20.Shift = v27
+local v28 = {
+    ["name"] = "ModeToggleAction",
+    ["type"] = nil,
+    ["bindings"] = nil,
+    ["type"] = Enum.InputActionType.Bool,
+    ["bindings"] = {
+        {
+            ["keyCode"] = v_u_12.Keys.ModeSelect.Toggle.Keyboard
+        },
+        {
+            ["keyCode"] = v_u_12.Keys.ModeSelect.Toggle.Gamepad
+        }
+    }
+}
+v20.ModeToggle = v28
+local v29 = {
+    ["name"] = "ModeNextAction",
+    ["type"] = nil,
+    ["bindings"] = nil,
+    ["type"] = Enum.InputActionType.Bool,
+    ["bindings"] = {
+        {
+            ["keyCode"] = v_u_12.Keys.ModeSelect.Next.Keyboard
+        },
+        {
+            ["keyCode"] = v_u_12.Keys.ModeSelect.Next.Gamepad
+        }
+    }
+}
+v20.ModeNext = v29
+local v30 = {
+    ["name"] = "ModeAxisAction",
+    ["type"] = nil,
+    ["bindings"] = nil,
+    ["type"] = Enum.InputActionType.Direction1D,
+    ["bindings"] = {
+        {
+            ["up"] = v_u_12.Keys.ModeSelect.Axis.Up.Keyboard,
+            ["down"] = v_u_12.Keys.ModeSelect.Axis.Down.Keyboard
+        },
+        {
+            ["up"] = v_u_12.Keys.ModeSelect.Axis.Up.Gamepad,
+            ["down"] = v_u_12.Keys.ModeSelect.Axis.Down.Gamepad
+        }
+    }
+}
+v20.ModeAxis = v30
+v_u_12.Actions = v20
+local v_u_31 = v_u_6.LocalPlayer
+if not v_u_31 then
+    v_u_6:GetPropertyChangedSignal("LocalPlayer"):Wait()
+    v_u_31 = v_u_6.LocalPlayer
+end
+local v_u_32 = nil
+local v_u_33 = v_u_10.CurrentCamera
+v_u_10:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+    -- upvalues: (copy) v_u_10, (ref) v_u_33
+    local v34 = v_u_10.CurrentCamera
+    if v34 then
+        v_u_33 = v34
+    end
+end)
+local v_u_35 = nil
+local v_u_36 = nil
+local v_u_37 = nil
+local v_u_38 = nil
+local v_u_39 = nil
+local v_u_40 = nil
+local v_u_41 = {
+    ["DepthOfField"] = {
+        ["Enabled"] = false,
+        ["FarIntensity"] = 0.75,
+        ["NearIntensity"] = 0.75,
+        ["FocusDistance"] = 0.05,
+        ["InFocusRadius"] = 10
+    },
+    ["Bloom"] = {
+        ["Enabled"] = false,
+        ["Intensity"] = 0.4,
+        ["Size"] = 24,
+        ["Threshold"] = 0.95
+    },
+    ["Blur"] = {
+        ["Enabled"] = false,
+        ["Size"] = 24
+    },
+    ["ColorCorrection"] = {
+        ["Enabled"] = false,
+        ["Brightness"] = 0,
+        ["Contrast"] = 0,
+        ["Saturation"] = 0,
+        ["TintColor"] = nil,
+        ["TintColor"] = Color3.new(1, 1, 1)
+    },
+    ["SunRays"] = {
+        ["Enabled"] = false,
+        ["Intensity"] = 0.25,
+        ["Spread"] = 1
+    },
+    ["ColorGrading"] = {
+        ["Enabled"] = false,
+        ["TonemapperPreset"] = nil,
+        ["TonemapperPreset"] = Enum.TonemapperPreset.Default
+    }
+}
+local v_u_42 = nil
+local v_u_43 = nil
+local v_u_44 = nil
+local v45, v46 = pcall(function()
+    return UserSettings():IsUserFeatureEnabled("UserShowGuiHideToggles")
+end)
+local v_u_47 = v45 and v46
+local function v58(p_u_48, p_u_49) -- name: makeEffectOverride
+    -- upvalues: (ref) v_u_33, (copy) v_u_11
+    local v_u_50 = {}
+    local v_u_51 = nil
+    local v_u_52 = nil
+    return function() -- name: enable
+        -- upvalues: (ref) v_u_50, (ref) v_u_33, (copy) p_u_48, (copy) p_u_49, (ref) v_u_11, (ref) v_u_51, (ref) v_u_52
+        v_u_50 = {}
+        for _, v53 in ipairs(v_u_33:GetChildren()) do
+            if v53:IsA(p_u_48) and (v53.Enabled and not (p_u_49 and p_u_49(v53))) then
+                v_u_50[#v_u_50 + 1] = v53
+                v53.Enabled = false
+            end
+        end
+        for _, v54 in ipairs(v_u_11:GetChildren()) do
+            if v54:IsA(p_u_48) and (v54.Enabled and not (p_u_49 and p_u_49(v54))) then
+                v_u_50[#v_u_50 + 1] = v54
+                v54.Enabled = false
+            end
+        end
+        v_u_51 = v_u_33.ChildAdded:Connect(function(p55)
+            -- upvalues: (ref) p_u_48, (ref) p_u_49, (ref) v_u_50
+            if p55:IsA(p_u_48) and (p55.Enabled and not (p_u_49 and p_u_49(p55))) then
+                v_u_50[#v_u_50 + 1] = p55
+                p55.Enabled = false
+            end
+        end)
+        v_u_52 = v_u_11.ChildAdded:Connect(function(p56)
+            -- upvalues: (ref) p_u_48, (ref) p_u_49, (ref) v_u_50
+            if p56:IsA(p_u_48) and (p56.Enabled and not (p_u_49 and p_u_49(p56))) then
+                v_u_50[#v_u_50 + 1] = p56
+                p56.Enabled = false
+            end
+        end)
+    end, function() -- name: disable
+        -- upvalues: (ref) v_u_50, (ref) v_u_51, (ref) v_u_52
+        for _, v57 in ipairs(v_u_50) do
+            if v57.Parent then
+                v57.Enabled = true
+            end
+        end
+        if v_u_51 then
+            v_u_51:Disconnect()
+            v_u_51 = nil
+        end
+        if v_u_52 then
+            v_u_52:Disconnect()
+            v_u_52 = nil
+        end
+        v_u_50 = {}
+    end
+end
+local v_u_59 = false
+local v_u_61, v_u_62 = v58("PostEffect", function(p60)
+    return p60.Name:sub(1, 7) == "Freecam"
+end)
+local v_u_63 = nil
+local function v_u_66() -- name: doToggleMasterEffects
+    -- upvalues: (ref) v_u_59, (copy) v_u_61, (copy) v_u_62, (ref) v_u_63
+    v_u_59 = not v_u_59
+    if v_u_59 then
+        v_u_61()
+    else
+        v_u_62()
+        for _, v64 in ipairs(v_u_63) do
+            local v65 = v64.get()
+            if v65 then
+                v65.Enabled = false
+            end
+        end
+    end
+end
+local function v_u_68() -- name: doToggleDoF
+    -- upvalues: (ref) v_u_35
+    local v67 = v_u_35
+    if v67 then
+        v67.Enabled = not v67.Enabled
+    end
+end
+local function v_u_70() -- name: doToggleBloom
+    -- upvalues: (ref) v_u_36
+    local v69 = v_u_36
+    if v69 then
+        v69.Enabled = not v69.Enabled
+    end
+end
+local function v_u_72() -- name: doToggleBlur
+    -- upvalues: (ref) v_u_37
+    local v71 = v_u_37
+    if v71 then
+        v71.Enabled = not v71.Enabled
+    end
+end
+local function v_u_74() -- name: doToggleColorCorrection
+    -- upvalues: (ref) v_u_38
+    local v73 = v_u_38
+    if v73 then
+        v73.Enabled = not v73.Enabled
+    end
+end
+local function v_u_76() -- name: doToggleSunRays
+    -- upvalues: (ref) v_u_39
+    local v75 = v_u_39
+    if v75 then
+        v75.Enabled = not v75.Enabled
+    end
+end
+local function v_u_78() -- name: doToggleColorGrading
+    -- upvalues: (ref) v_u_40
+    local v77 = v_u_40
+    if v77 then
+        v77.Enabled = not v77.Enabled
+    end
+end
+v_u_63 = {
+    {
+        ["key"] = "DepthOfField",
+        ["class"] = "DepthOfFieldEffect",
+        ["get"] = nil,
+        ["set"] = nil,
+        ["props"] = nil,
+        ["get"] = function() -- name: get
+            -- upvalues: (ref) v_u_35
+            return v_u_35
+        end,
+        ["set"] = function(p79) -- name: set
+            -- upvalues: (ref) v_u_35
+            v_u_35 = p79
+        end,
+        ["props"] = {
+            "FarIntensity",
+            "NearIntensity",
+            "FocusDistance",
+            "InFocusRadius"
+        }
+    },
+    {
+        ["key"] = "Bloom",
+        ["class"] = "BloomEffect",
+        ["get"] = nil,
+        ["set"] = nil,
+        ["props"] = nil,
+        ["get"] = function() -- name: get
+            -- upvalues: (ref) v_u_36
+            return v_u_36
+        end,
+        ["set"] = function(p80) -- name: set
+            -- upvalues: (ref) v_u_36
+            v_u_36 = p80
+        end,
+        ["props"] = { "Intensity", "Size", "Threshold" }
+    },
+    {
+        ["key"] = "Blur",
+        ["class"] = "BlurEffect",
+        ["get"] = nil,
+        ["set"] = nil,
+        ["props"] = nil,
+        ["get"] = function() -- name: get
+            -- upvalues: (ref) v_u_37
+            return v_u_37
+        end,
+        ["set"] = function(p81) -- name: set
+            -- upvalues: (ref) v_u_37
+            v_u_37 = p81
+        end,
+        ["props"] = { "Size" }
+    },
+    {
+        ["key"] = "ColorCorrection",
+        ["class"] = "ColorCorrectionEffect",
+        ["get"] = nil,
+        ["set"] = nil,
+        ["props"] = nil,
+        ["get"] = function() -- name: get
+            -- upvalues: (ref) v_u_38
+            return v_u_38
+        end,
+        ["set"] = function(p82) -- name: set
+            -- upvalues: (ref) v_u_38
+            v_u_38 = p82
+        end,
+        ["props"] = {
+            "Brightness",
+            "Contrast",
+            "Saturation",
+            "TintColor"
+        }
+    },
+    {
+        ["key"] = "SunRays",
+        ["class"] = "SunRaysEffect",
+        ["get"] = nil,
+        ["set"] = nil,
+        ["props"] = nil,
+        ["get"] = function() -- name: get
+            -- upvalues: (ref) v_u_39
+            return v_u_39
+        end,
+        ["set"] = function(p83) -- name: set
+            -- upvalues: (ref) v_u_39
+            v_u_39 = p83
+        end,
+        ["props"] = { "Intensity", "Spread" }
+    },
+    {
+        ["key"] = "ColorGrading",
+        ["class"] = "ColorGradingEffect",
+        ["get"] = nil,
+        ["set"] = nil,
+        ["props"] = nil,
+        ["get"] = function() -- name: get
+            -- upvalues: (ref) v_u_40
+            return v_u_40
+        end,
+        ["set"] = function(p84) -- name: set
+            -- upvalues: (ref) v_u_40
+            v_u_40 = p84
+        end,
+        ["props"] = { "TonemapperPreset" }
+    }
+}
+local v_u_85 = nil
+local v_u_86 = nil
+local v_u_87 = nil
+local v_u_88 = false
+local v_u_89 = v_u_12.PlayerLock.DefaultZoom
+local v_u_90 = v_u_12.PlayerLock.DefaultHeight
+local v_u_91 = {}
+local v_u_92 = 1
+local v_u_93 = nil
+local v_u_94 = false
+local v_u_95 = false
+local v_u_96 = (-1 / 0)
+local v_u_97 = (-1 / 0)
+local v_u_98 = {
+    ["movement"] = v_u_12.Movement.Stiffness,
+    ["pan"] = v_u_12.Pan.Stiffness,
+    ["fov"] = v_u_12.Fov.Stiffness,
+    ["roll"] = v_u_12.Roll.Stiffness
+}
+local v_u_99 = nil
+local v_u_100 = {}
+v_u_100.__index = v_u_100
+function v_u_100.new(p101, p102) -- name: new
+    -- upvalues: (copy) v_u_100
+    local v103 = v_u_100
+    local v104 = setmetatable({}, v103)
+    v104.f = p101
+    v104.p = p102
+    v104.v = p102 * 0
+    return v104
+end
+function v_u_100.Update(p105, p106, p107) -- name: Update
+    -- upvalues: (copy) v_u_2
+    local v108 = p105.f * 2 * 3.141592653589793
+    local v109 = p105.p
+    local v110 = p105.v
+    local v111 = p107 - v109
+    local v112 = v_u_2(-v108 * p106)
+    local v113 = p107 + (v110 * p106 - v111 * (v108 * p106 + 1)) * v112
+    local v114 = (v108 * p106 * (v111 * v108 - v110) + v110) * v112
+    p105.p = v113
+    p105.v = v114
+    return v113
+end
+function v_u_100.SetFreq(p115, p116) -- name: SetFreq
+    p115.f = p116
+end
+function v_u_100.Reset(p117, p118) -- name: Reset
+    p117.p = p118
+    p117.v = p118 * 0
+end
+local v_u_119 = Vector3.new()
+local v_u_120 = Vector3.new()
+local v_u_121 = 0
+local v_u_122 = v_u_100.new(v_u_98.movement, (Vector3.new()))
+local v_u_123 = v_u_100.new(v_u_98.pan, Vector2.new())
+local v_u_124 = v_u_100.new(v_u_98.fov, 0)
+local v_u_125 = v_u_100.new(v_u_98.roll, 0)
+local v_u_126 = {}
+local v_u_127 = {}
+local v_u_128 = {
+    ["movement"] = 1,
+    ["pan"] = 1,
+    ["fov"] = 1,
+    ["roll"] = 1
+}
+local v_u_129 = false
+local v_u_130 = nil
+local v_u_131 = false
+local v_u_132 = 1
+local v_u_133 = {}
+local v_u_134 = false
+local function v_u_138(p135) -- name: findPlayerLockRootPart
+    -- upvalues: (ref) v_u_91, (ref) v_u_92, (ref) v_u_88
+    if not v_u_91 or #v_u_91 < 1 then
+        return nil
+    end
+    for _ = 1, #v_u_91 do
+        v_u_92 = (v_u_92 - 1 + p135) % #v_u_91 + 1
+        local v136 = v_u_91[v_u_92]
+        if v136 then
+            v136 = v136.Character
+        end
+        if v136 then
+            local v137 = v136:FindFirstChildOfClass("Humanoid")
+            if v137 and v137.RootPart then
+                return v137.RootPart
+            end
+        end
+        if p135 == 0 then
+            p135 = 1
+        end
+    end
+    v_u_88 = false
+    return nil
+end
+local v_u_139 = {
+    {
+        ["name"] = "Custom",
+        ["color"] = nil
+    },
+    {
+        ["name"] = "White",
+        ["color"] = nil,
+        ["color"] = Color3.new(1, 1, 1)
+    },
+    {
+        ["name"] = "Warm",
+        ["color"] = nil,
+        ["color"] = Color3.fromRGB(255, 230, 200)
+    },
+    {
+        ["name"] = "Cool",
+        ["color"] = nil,
+        ["color"] = Color3.fromRGB(200, 220, 255)
+    },
+    {
+        ["name"] = "Red",
+        ["color"] = nil,
+        ["color"] = Color3.new(1, 0, 0)
+    },
+    {
+        ["name"] = "Green",
+        ["color"] = nil,
+        ["color"] = Color3.new(0, 1, 0)
+    },
+    {
+        ["name"] = "Blue",
+        ["color"] = nil,
+        ["color"] = Color3.new(0, 0, 1)
+    },
+    {
+        ["name"] = "Yellow",
+        ["color"] = nil,
+        ["color"] = Color3.new(1, 1, 0)
+    },
+    {
+        ["name"] = "Cyan",
+        ["color"] = nil,
+        ["color"] = Color3.new(0, 1, 1)
+    },
+    {
+        ["name"] = "Magenta",
+        ["color"] = nil,
+        ["color"] = Color3.new(1, 0, 1)
+    },
+    {
+        ["name"] = "Orange",
+        ["color"] = nil,
+        ["color"] = Color3.fromRGB(255, 140, 0)
+    },
+    {
+        ["name"] = "Purple",
+        ["color"] = nil,
+        ["color"] = Color3.fromRGB(128, 0, 255)
+    }
+}
+local v_u_140 = 1
+local v_u_141 = Color3.new(1, 1, 1)
+local function v142() -- name: doTogglePlayerLock
+    -- upvalues: (ref) v_u_88, (ref) v_u_89, (copy) v_u_12, (ref) v_u_90, (ref) v_u_93, (copy) v_u_138
+    v_u_88 = not v_u_88
+    if v_u_88 then
+        v_u_89 = v_u_12.PlayerLock.DefaultZoom
+        v_u_90 = v_u_12.PlayerLock.DefaultHeight
+        v_u_93 = v_u_138(0)
+    end
+end
+local function v144() -- name: doToggleScreenGuis
+    -- upvalues: (ref) v_u_94, (ref) v_u_44, (ref) v_u_32
+    v_u_94 = not v_u_94
+    if v_u_44 then
+        for _, v143 in pairs(v_u_44.getScreenGuis()) do
+            if v143.Parent and v143 ~= v_u_32 then
+                v143.Enabled = v_u_94
+            end
+        end
+    end
+end
+local function v145() -- name: doToggleLeaderboard
+    -- upvalues: (ref) v_u_95, (copy) v_u_8
+    v_u_95 = not v_u_95
+    v_u_8:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, v_u_95)
+end
+local function v_u_158(p146, p147, p_u_148, p149, p150) -- name: makeEffectGroup
+    local v152 = {
+        {
+            ["type"] = "toggle",
+            ["name"] = "Enable",
+            ["toggle"] = nil,
+            ["isEnabled"] = nil,
+            ["toggle"] = p147,
+            ["isEnabled"] = function() -- name: isEnabled
+                -- upvalues: (copy) p_u_148
+                local v151 = p_u_148()
+                if v151 then
+                    v151 = v151.Enabled
+                end
+                return v151
+            end
+        }
+    }
+    for _, v_u_153 in ipairs(p149 or {}) do
+        v152[#v152 + 1] = {
+            ["type"] = "axis",
+            ["name"] = nil,
+            ["adj"] = nil,
+            ["min"] = nil,
+            ["max"] = nil,
+            ["get"] = nil,
+            ["set"] = nil,
+            ["name"] = v_u_153.name,
+            ["adj"] = v_u_153.adjCfg.Adj,
+            ["min"] = v_u_153.adjCfg.Min,
+            ["max"] = v_u_153.adjCfg.Max,
+            ["get"] = function() -- name: get
+                -- upvalues: (copy) p_u_148, (copy) v_u_153
+                local v154 = p_u_148()
+                return v154 and v154[v_u_153.prop] or 0
+            end,
+            ["set"] = function(p155) -- name: set
+                -- upvalues: (copy) p_u_148, (copy) v_u_153
+                local v156 = p_u_148()
+                if v156 then
+                    v156[v_u_153.prop] = p155
+                end
+            end
+        }
+    end
+    for _, v157 in ipairs(p150 or {}) do
+        v152[#v152 + 1] = v157
+    end
+    return {
+        ["type"] = "group",
+        ["name"] = nil,
+        ["modes"] = nil,
+        ["name"] = p146,
+        ["modes"] = v152
+    }
+end
+local function v167(p159, p160, p_u_161, p_u_162, p_u_163) -- name: makeSpeedStiffnessGroup
+    -- upvalues: (copy) v_u_128, (copy) v_u_98
+    local v166 = {
+        ["type"] = "group",
+        ["name"] = nil,
+        ["modes"] = nil,
+        ["name"] = p159,
+        ["modes"] = {
+            {
+                ["type"] = "axis",
+                ["name"] = "Speed",
+                ["adj"] = nil,
+                ["min"] = nil,
+                ["max"] = nil,
+                ["get"] = nil,
+                ["set"] = nil,
+                ["adj"] = p160.AdjSpeed,
+                ["min"] = p160.MinSpeed,
+                ["max"] = p160.MaxSpeed,
+                ["get"] = function() -- name: get
+                    -- upvalues: (ref) v_u_128, (copy) p_u_161
+                    return v_u_128[p_u_161]
+                end,
+                ["set"] = function(p164) -- name: set
+                    -- upvalues: (ref) v_u_128, (copy) p_u_161
+                    v_u_128[p_u_161] = p164
+                end
+            },
+            {
+                ["type"] = "axis",
+                ["name"] = "Stiffness",
+                ["adj"] = nil,
+                ["min"] = nil,
+                ["max"] = nil,
+                ["get"] = nil,
+                ["set"] = nil,
+                ["adj"] = p160.AdjStiffness,
+                ["min"] = p160.MinStiffness,
+                ["max"] = p160.MaxStiffness,
+                ["get"] = function() -- name: get
+                    -- upvalues: (ref) v_u_98, (copy) p_u_162
+                    return v_u_98[p_u_162]
+                end,
+                ["set"] = function(p165) -- name: set
+                    -- upvalues: (ref) v_u_98, (copy) p_u_162, (copy) p_u_163
+                    v_u_98[p_u_162] = p165
+                    p_u_163:SetFreq(p165)
+                end
+            }
+        }
+    }
+    return v166
+end
+local v_u_168 = {}
+local v173 = {
+    ["type"] = "group",
+    ["name"] = "Player Lock",
+    ["modes"] = nil,
+    ["modes"] = {
+        {
+            ["type"] = "toggle",
+            ["name"] = "Enable",
+            ["toggle"] = nil,
+            ["isEnabled"] = nil,
+            ["toggle"] = v142,
+            ["isEnabled"] = function() -- name: isEnabled
+                -- upvalues: (ref) v_u_88
+                return v_u_88
+            end
+        },
+        {
+            ["type"] = "cycle",
+            ["name"] = "Target",
+            ["items"] = nil,
+            ["getIndex"] = nil,
+            ["setIndex"] = nil,
+            ["displayItem"] = nil,
+            ["items"] = function() -- name: items
+                -- upvalues: (ref) v_u_91
+                return v_u_91
+            end,
+            ["getIndex"] = function() -- name: getIndex
+                -- upvalues: (ref) v_u_92
+                return v_u_92
+            end,
+            ["setIndex"] = function(p169) -- name: setIndex
+                -- upvalues: (ref) v_u_92, (ref) v_u_91, (ref) v_u_93
+                v_u_92 = p169
+                local v170 = v_u_91[p169]
+                if v170 then
+                    v170 = v170.Character
+                end
+                if v170 then
+                    local v171 = v170:FindFirstChildOfClass("Humanoid")
+                    v_u_93 = v171 and v171.RootPart or nil
+                else
+                    v_u_93 = nil
+                end
+            end,
+            ["displayItem"] = function(p172) -- name: displayItem
+                return p172.Name
+            end
+        }
+    }
+}
+local v174 = {
+    ["type"] = "group",
+    ["name"] = "UI",
+    ["modes"] = nil,
+    ["modes"] = {
+        {
+            ["type"] = "toggle",
+            ["name"] = "Screen GUIs",
+            ["toggle"] = nil,
+            ["isEnabled"] = nil,
+            ["toggle"] = v144,
+            ["isEnabled"] = function() -- name: isEnabled
+                -- upvalues: (ref) v_u_94
+                return v_u_94
+            end
+        },
+        {
+            ["type"] = "toggle",
+            ["name"] = "Leaderboard",
+            ["toggle"] = nil,
+            ["isEnabled"] = nil,
+            ["toggle"] = v145,
+            ["isEnabled"] = function() -- name: isEnabled
+                -- upvalues: (ref) v_u_95
+                return v_u_95
+            end
+        }
+    }
+}
+__set_list(v_u_168, 1, {(function() -- name: buildCustomEffectsGroup
+    -- upvalues: (copy) v_u_66, (ref) v_u_59, (copy) v_u_158, (copy) v_u_68, (ref) v_u_35, (copy) v_u_12, (copy) v_u_70, (ref) v_u_36, (copy) v_u_72, (ref) v_u_37, (copy) v_u_74, (ref) v_u_38, (copy) v_u_139, (ref) v_u_140, (ref) v_u_141, (copy) v_u_76, (ref) v_u_39, (copy) v_u_78, (ref) v_u_40
+    local v175 = {
+        ["type"] = "group",
+        ["name"] = "Custom Post Processing",
+        ["modes"] = nil
+    }
+    local v176 = {}
+    local v179 = {
+        {
+            ["type"] = "cycle",
+            ["name"] = "Tonemap",
+            ["items"] = nil,
+            ["getIndex"] = nil,
+            ["setIndex"] = nil,
+            ["displayItem"] = nil,
+            ["items"] = function() -- name: items
+                return { Enum.TonemapperPreset.Default, Enum.TonemapperPreset.Retro }
+            end,
+            ["getIndex"] = function() -- name: getIndex
+                -- upvalues: (ref) v_u_40
+                return v_u_40 and v_u_40.TonemapperPreset == Enum.TonemapperPreset.Retro and 2 or 1
+            end,
+            ["setIndex"] = function(p177) -- name: setIndex
+                -- upvalues: (ref) v_u_40
+                if v_u_40 then
+                    v_u_40.TonemapperPreset = ({ Enum.TonemapperPreset.Default, Enum.TonemapperPreset.Retro })[p177]
+                end
+            end,
+            ["displayItem"] = function(p178) -- name: displayItem
+                return p178.Name
+            end
+        }
+    }
+    __set_list(v176, 1, {{
+    ["type"] = "toggle",
+    ["name"] = "Enable",
+    ["toggle"] = nil,
+    ["isEnabled"] = nil,
+    ["toggle"] = v_u_66,
+    ["isEnabled"] = function() -- name: isEnabled
+        -- upvalues: (ref) v_u_59
+        return v_u_59
+    end
+}, v_u_158("Depth of Field", v_u_68, function()
+    -- upvalues: (ref) v_u_35
+    return v_u_35
+end, {
+    {
+        ["name"] = "Far",
+        ["adjCfg"] = nil,
+        ["prop"] = "FarIntensity",
+        ["adjCfg"] = v_u_12.DoF.FarIntensity
+    },
+    {
+        ["name"] = "Near",
+        ["adjCfg"] = nil,
+        ["prop"] = "NearIntensity",
+        ["adjCfg"] = v_u_12.DoF.NearIntensity
+    },
+    {
+        ["name"] = "Focus Distance",
+        ["adjCfg"] = nil,
+        ["prop"] = "FocusDistance",
+        ["adjCfg"] = v_u_12.DoF.FocusDistance
+    },
+    {
+        ["name"] = "Focus Radius",
+        ["adjCfg"] = nil,
+        ["prop"] = "InFocusRadius",
+        ["adjCfg"] = v_u_12.DoF.FocusRadius
+    }
+}), v_u_158("Bloom", v_u_70, function()
+    -- upvalues: (ref) v_u_36
+    return v_u_36
+end, {
+    {
+        ["name"] = "Intensity",
+        ["adjCfg"] = nil,
+        ["prop"] = "Intensity",
+        ["adjCfg"] = v_u_12.Bloom.Intensity
+    },
+    {
+        ["name"] = "Size",
+        ["adjCfg"] = nil,
+        ["prop"] = "Size",
+        ["adjCfg"] = v_u_12.Bloom.Size
+    },
+    {
+        ["name"] = "Threshold",
+        ["adjCfg"] = nil,
+        ["prop"] = "Threshold",
+        ["adjCfg"] = v_u_12.Bloom.Threshold
+    }
+}), v_u_158("Blur", v_u_72, function()
+    -- upvalues: (ref) v_u_37
+    return v_u_37
+end, {
+    {
+        ["name"] = "Size",
+        ["adjCfg"] = nil,
+        ["prop"] = "Size",
+        ["adjCfg"] = v_u_12.Blur.Size
+    }
+}), v_u_158("Color Correction", v_u_74, function()
+    -- upvalues: (ref) v_u_38
+    return v_u_38
+end, {
+    {
+        ["name"] = "Brightness",
+        ["adjCfg"] = nil,
+        ["prop"] = "Brightness",
+        ["adjCfg"] = v_u_12.ColorCorrection.Brightness
+    },
+    {
+        ["name"] = "Contrast",
+        ["adjCfg"] = nil,
+        ["prop"] = "Contrast",
+        ["adjCfg"] = v_u_12.ColorCorrection.Contrast
+    },
+    {
+        ["name"] = "Saturation",
+        ["adjCfg"] = nil,
+        ["prop"] = "Saturation",
+        ["adjCfg"] = v_u_12.ColorCorrection.Saturation
+    }
+}, {
+    {
+        ["type"] = "cycle",
+        ["name"] = "Tint",
+        ["items"] = nil,
+        ["getIndex"] = nil,
+        ["setIndex"] = nil,
+        ["displayItem"] = nil,
+        ["items"] = function() -- name: items
+            -- upvalues: (ref) v_u_139
+            return v_u_139
+        end,
+        ["getIndex"] = function() -- name: getIndex
+            -- upvalues: (ref) v_u_140
+            return v_u_140
+        end,
+        ["setIndex"] = function(p180) -- name: setIndex
+            -- upvalues: (ref) v_u_140, (ref) v_u_38, (ref) v_u_141, (ref) v_u_139
+            v_u_140 = p180
+            if v_u_38 then
+                if p180 == 1 then
+                    v_u_38.TintColor = v_u_141
+                    return
+                end
+                local v181 = v_u_139[p180].color
+                v_u_38.TintColor = v181
+                v_u_141 = v181
+            end
+        end,
+        ["displayItem"] = function(p182) -- name: displayItem
+            return p182.name
+        end
+    },
+    {
+        ["type"] = "axis",
+        ["name"] = "Tint R",
+        ["adj"] = 0.02,
+        ["min"] = 0,
+        ["max"] = 1,
+        ["get"] = nil,
+        ["set"] = nil,
+        ["get"] = function() -- name: get
+            -- upvalues: (ref) v_u_141
+            return v_u_141.R
+        end,
+        ["set"] = function(p183) -- name: set
+            -- upvalues: (ref) v_u_141, (ref) v_u_140, (ref) v_u_38
+            v_u_141 = Color3.new(p183, v_u_141.G, v_u_141.B)
+            v_u_140 = 1
+            if v_u_38 then
+                v_u_38.TintColor = v_u_141
+            end
+        end
+    },
+    {
+        ["type"] = "axis",
+        ["name"] = "Tint G",
+        ["adj"] = 0.02,
+        ["min"] = 0,
+        ["max"] = 1,
+        ["get"] = nil,
+        ["set"] = nil,
+        ["get"] = function() -- name: get
+            -- upvalues: (ref) v_u_141
+            return v_u_141.G
+        end,
+        ["set"] = function(p184) -- name: set
+            -- upvalues: (ref) v_u_141, (ref) v_u_140, (ref) v_u_38
+            v_u_141 = Color3.new(v_u_141.R, p184, v_u_141.B)
+            v_u_140 = 1
+            if v_u_38 then
+                v_u_38.TintColor = v_u_141
+            end
+        end
+    },
+    {
+        ["type"] = "axis",
+        ["name"] = "Tint B",
+        ["adj"] = 0.02,
+        ["min"] = 0,
+        ["max"] = 1,
+        ["get"] = nil,
+        ["set"] = nil,
+        ["get"] = function() -- name: get
+            -- upvalues: (ref) v_u_141
+            return v_u_141.B
+        end,
+        ["set"] = function(p185) -- name: set
+            -- upvalues: (ref) v_u_141, (ref) v_u_140, (ref) v_u_38
+            v_u_141 = Color3.new(v_u_141.R, v_u_141.G, p185)
+            v_u_140 = 1
+            if v_u_38 then
+                v_u_38.TintColor = v_u_141
+            end
+        end
+    }
+}), v_u_158("Sun Rays", v_u_76, function()
+    -- upvalues: (ref) v_u_39
+    return v_u_39
+end, {
+    {
+        ["name"] = "Intensity",
+        ["adjCfg"] = nil,
+        ["prop"] = "Intensity",
+        ["adjCfg"] = v_u_12.SunRays.Intensity
+    },
+    {
+        ["name"] = "Spread",
+        ["adjCfg"] = nil,
+        ["prop"] = "Spread",
+        ["adjCfg"] = v_u_12.SunRays.Spread
+    }
+}), (v_u_158("Color Grading", v_u_78, function()
+    -- upvalues: (ref) v_u_40
+    return v_u_40
+end, nil, v179))})
+    v175.modes = v176
+    return v175
+end)(), v173, v174, v167("Movement", v_u_12.Movement, "movement", "movement", v_u_122), v167("Field of View", v_u_12.Fov, "fov", "fov", v_u_124), v167("Tilt", v_u_12.Roll, "roll", "roll", v_u_125), (v167("Pan", v_u_12.Pan, "pan", "pan", v_u_123))})
+local function v_u_189(p186, p187) -- name: createBinding
+    local v188 = Instance.new("InputBinding")
+    if p187.keyCode then
+        v188.KeyCode = p187.keyCode
+    end
+    if p187.up then
+        v188.Up = p187.up
+    end
+    if p187.down then
+        v188.Down = p187.down
+    end
+    if p187.left then
+        v188.Left = p187.left
+    end
+    if p187.right then
+        v188.Right = p187.right
+    end
+    if p187.scale then
+        v188.Scale = p187.scale
+    end
+    if p187.vector2Scale then
+        v188.Vector2Scale = p187.vector2Scale
+    end
+    if p187.responseCurve then
+        v188.ResponseCurve = p187.responseCurve
+    end
+    if p187.primaryModifier then
+        v188.PrimaryModifier = p187.primaryModifier
+    end
+    v188.Parent = p186
+    return v188
+end
+local function v_u_194(p190, p191) -- name: createAction
+    -- upvalues: (copy) v_u_189
+    local v192 = Instance.new("InputAction")
+    v192.Name = p191.name
+    v192.Type = p191.type
+    v192.Parent = p190
+    for _, v193 in ipairs(p191.bindings) do
+        v_u_189(v192, v193)
+    end
+    return v192
+end
+(function() -- name: createIASContexts
+    -- upvalues: (copy) v_u_12, (ref) v_u_99, (copy) v_u_194, (copy) v_u_126, (copy) v_u_127, (ref) v_u_130, (ref) v_u_120, (copy) v_u_125, (ref) v_u_129, (ref) v_u_131, (ref) v_u_134, (ref) v_u_133, (copy) v_u_168, (ref) v_u_132
+    local v195 = v_u_12.Actions
+    local v196 = Instance.new("InputContext")
+    v196.Name = "FreecamToggleContext"
+    v196.Priority = 3000
+    v196.Sink = false
+    v196.Enabled = true
+    v196.Parent = script
+    v_u_99 = v_u_194(v196, v195.Toggle)
+    local v197 = Instance.new("InputContext")
+    v197.Name = "FreecamInputContext"
+    v197.Priority = 2000
+    v197.Sink = true
+    v197.Enabled = false
+    v197.Parent = script
+    v_u_126._sinkContext = v197
+    v_u_127.Pan = v_u_194(v197, v195.Pan)
+    v_u_127.MovementMove = v_u_194(v197, v195.MovementMove)
+    v_u_127.MovementElevate = v_u_194(v197, v195.MovementElevate)
+    v_u_127.Fov = v_u_194(v197, v195.Fov)
+    v_u_127.Shift = v_u_194(v197, v195.Shift)
+    local v198 = v_u_194(v197, v195.Tilt)
+    v_u_127.Tilt = v198
+    local v_u_199 = v_u_12.DoubleTap.Threshold
+    local v_u_200 = v_u_12.DoubleTap.Debounce
+    local function v_u_203()
+        -- upvalues: (ref) v_u_120, (ref) v_u_125, (ref) v_u_129
+        local v201 = v_u_120.x
+        local v202 = v_u_120.y
+        v_u_120 = Vector3.new(v201, v202, 0)
+        v_u_125:Reset(0)
+        v_u_129 = true
+    end
+    local v_u_204 = nil
+    local v_u_205 = 0
+    local function v208(p206) -- name: detect
+        -- upvalues: (ref) v_u_204, (copy) v_u_199, (ref) v_u_205, (copy) v_u_200, (copy) v_u_203
+        if math.abs(p206) > 0.01 then
+            local v207 = os.clock()
+            if v_u_204 ~= nil and v207 - v_u_204 <= v_u_199 then
+                if v_u_200 <= v207 - v_u_205 then
+                    v_u_203()
+                    v_u_205 = v207
+                end
+                v_u_204 = nil
+                return
+            end
+            v_u_204 = v207
+        end
+    end
+    v_u_130 = function() -- name: reset
+        -- upvalues: (ref) v_u_204
+        v_u_204 = nil
+    end
+    local v_u_209 = v208
+    v198.StateChanged:Connect(function(p210)
+        -- upvalues: (ref) v_u_129, (ref) v_u_209
+        if v_u_129 then
+            if math.abs(p210) < 0.01 then
+                v_u_129 = false
+            end
+        else
+            v_u_209(p210)
+        end
+    end)
+    v_u_194(v197, v195.ModeToggle).StateChanged:Connect(function(p211)
+        -- upvalues: (ref) v_u_131, (ref) v_u_134, (ref) v_u_133
+        if p211 then
+            if v_u_131 then
+                if v_u_134 then
+                    v_u_134 = false
+                    return
+                elseif #v_u_133 > 0 then
+                    v_u_133[#v_u_133] = nil
+                else
+                    v_u_131 = false
+                end
+            else
+                v_u_131 = true
+                return
+            end
+        else
+            return
+        end
+    end)
+    v_u_194(v197, v195.ModeNext).StateChanged:Connect(function(p212)
+        -- upvalues: (ref) v_u_131, (ref) v_u_134, (ref) v_u_133, (ref) v_u_168, (ref) v_u_132
+        if p212 and v_u_131 then
+            if v_u_134 then
+                return
+            elseif #v_u_133 > 0 then
+                local v213 = v_u_133[#v_u_133]
+                v213.index = v213.index % #v213.modes + 1
+                return
+            else
+                local v214 = v_u_168[v_u_132]
+                if v214.type == "group" then
+                    local v215 = v_u_133
+                    local v216 = {
+                        ["modes"] = nil,
+                        ["index"] = 1,
+                        ["groupName"] = nil,
+                        ["modes"] = v214.modes,
+                        ["groupName"] = v214.name
+                    }
+                    table.insert(v215, v216)
+                    return
+                elseif v214.type == "toggle" then
+                    v214.toggle()
+                elseif v214.type == "cycle" then
+                    local v217 = v214.items()
+                    if #v217 > 0 then
+                        v214.setIndex(v214.getIndex() % #v217 + 1)
+                        return
+                    end
+                else
+                    if v214.type == "action" then
+                        v214.action()
+                        return
+                    end
+                    if v214.type == "axis" then
+                        v_u_134 = true
+                    end
+                end
+            end
+        else
+            return
+        end
+    end)
+    local v218 = v_u_194(v197, v195.ModeAxis)
+    v218.StateChanged:Connect(function(p219)
+        -- upvalues: (ref) v_u_131, (ref) v_u_134, (ref) v_u_133, (ref) v_u_168, (ref) v_u_132
+        if v_u_131 and p219 ~= 0 then
+            if not v_u_134 then
+                if #v_u_133 > 0 then
+                    local v220
+                    if #v_u_133 > 0 then
+                        local v221 = v_u_133[#v_u_133]
+                        v220 = v221.modes[v221.index]
+                    else
+                        v220 = v_u_168[v_u_132]
+                    end
+                    if v220.type == "group" then
+                        local v222 = v_u_133
+                        local v223 = {
+                            ["modes"] = nil,
+                            ["index"] = 1,
+                            ["groupName"] = nil,
+                            ["modes"] = v220.modes,
+                            ["groupName"] = v220.name
+                        }
+                        table.insert(v222, v223)
+                        return
+                    end
+                    if v220.type == "toggle" then
+                        v220.toggle()
+                        return
+                    end
+                    if v220.type == "cycle" then
+                        local v224 = v220.items()
+                        if #v224 == 0 then
+                            return
+                        end
+                        if p219 > 0 then
+                            v220.setIndex(v220.getIndex() % #v224 + 1)
+                            return
+                        end
+                        if p219 < 0 then
+                            v220.setIndex((v220.getIndex() - 2) % #v224 + 1)
+                            return
+                        end
+                    elseif v220.type == "action" then
+                        v220.action()
+                        return
+                    end
+                else
+                    if p219 > 0 then
+                        v_u_132 = v_u_132 % #v_u_168 + 1
+                        return
+                    end
+                    if p219 < 0 then
+                        v_u_132 = (v_u_132 - 2) % #v_u_168 + 1
+                    end
+                end
+            end
+        else
+            return
+        end
+    end)
+    v_u_127.ModeAxis = v218
+end)()
+function v_u_126.Movement() -- name: Movement
+    -- upvalues: (copy) v_u_127, (copy) v_u_128, (copy) v_u_12
+    local v225 = v_u_127.MovementMove:GetState()
+    local v226 = v225.X
+    local v227 = v_u_127.MovementElevate:GetState()
+    local v228 = v225.Y
+    return Vector3.new(v226, v227, v228) * (v_u_128.movement * (v_u_127.Shift:GetState() and v_u_12.Movement.ShiftMul or 1))
+end
+function v_u_126.Pan() -- name: Pan
+    -- upvalues: (copy) v_u_127, (copy) v_u_128
+    local v229 = v_u_127.Pan:GetState()
+    return Vector2.new(v229.Y, -v229.X) * v_u_128.pan
+end
+function v_u_126.Fov() -- name: Fov
+    -- upvalues: (copy) v_u_127, (copy) v_u_128
+    return v_u_127.Fov:GetState() * v_u_128.fov
+end
+function v_u_126.Roll() -- name: Roll
+    -- upvalues: (ref) v_u_129, (copy) v_u_127, (copy) v_u_128
+    return (v_u_129 and 0 or v_u_127.Tilt:GetState()) * v_u_128.roll
+end
+function v_u_126.ModeControl(p230) -- name: ModeControl
+    -- upvalues: (ref) v_u_131, (ref) v_u_133, (ref) v_u_134, (copy) v_u_168, (ref) v_u_132, (copy) v_u_127, (copy) v_u_1
+    if v_u_131 then
+        if #v_u_133 == 0 and not v_u_134 then
+            return
+        else
+            local v231
+            if #v_u_133 > 0 then
+                local v232 = v_u_133[#v_u_133]
+                v231 = v232.modes[v232.index]
+            else
+                v231 = v_u_168[v_u_132]
+            end
+            if v231.type == "axis" then
+                local v233 = v_u_127.ModeAxis:GetState() * v231.adj * p230
+                if v233 ~= 0 then
+                    v231.set((v_u_1(v231.get() + v233, v231.min, v231.max)))
+                end
+            end
+        end
+    else
+        return
+    end
+end
+function v_u_126.StartCapture() -- name: StartCapture
+    -- upvalues: (copy) v_u_126
+    v_u_126._sinkContext.Enabled = true
+end
+function v_u_126.StopCapture() -- name: StopCapture
+    -- upvalues: (copy) v_u_126, (ref) v_u_129, (ref) v_u_130, (ref) v_u_131, (ref) v_u_133, (ref) v_u_134
+    v_u_126._sinkContext.Enabled = false
+    v_u_129 = false
+    if v_u_130 then
+        v_u_130()
+    end
+    v_u_131 = false
+    v_u_133 = {}
+    v_u_134 = false
+end
+function v_u_126.getModeActive() -- name: getModeActive
+    -- upvalues: (ref) v_u_131
+    return v_u_131
+end
+function v_u_126.getModeName() -- name: getModeName
+    -- upvalues: (ref) v_u_133, (copy) v_u_168, (ref) v_u_132
+    local v234
+    if #v_u_133 > 0 then
+        local v235 = v_u_133[#v_u_133]
+        v234 = v235.modes[v235.index]
+    else
+        v234 = v_u_168[v_u_132]
+    end
+    return v234.name
+end
+function v_u_126.getModeBreadcrumb() -- name: getModeBreadcrumb
+    -- upvalues: (ref) v_u_133
+    if #v_u_133 == 0 then
+        return ""
+    end
+    local v236 = {}
+    for _, v237 in ipairs(v_u_133) do
+        local v238 = v237.groupName
+        table.insert(v236, v238)
+    end
+    return table.concat(v236, " \226\128\186 ")
+end
+function v_u_126.getModeDisplay() -- name: getModeDisplay
+    -- upvalues: (ref) v_u_133, (copy) v_u_168, (ref) v_u_132
+    local v239
+    if #v_u_133 > 0 then
+        local v240 = v_u_133[#v_u_133]
+        v239 = v240.modes[v240.index]
+    else
+        v239 = v_u_168[v_u_132]
+    end
+    if v239.type == "group" then
+        return ""
+    end
+    if v239.type == "axis" then
+        return string.format("%.2f", v239.get())
+    end
+    if v239.type == "toggle" then
+        return v239.isEnabled() and "ON" or "OFF"
+    end
+    if v239.type ~= "cycle" then
+        return v239.type == "action" and "(fire)" or ""
+    end
+    local v241 = v239.items()
+    if #v241 == 0 then
+        return "None"
+    end
+    local v242 = v241[v239.getIndex()]
+    return v242 and v239.displayItem(v242) or "None"
+end
+function v_u_126.getModeHint() -- name: getModeHint
+    -- upvalues: (copy) v_u_168, (ref) v_u_132, (ref) v_u_133, (ref) v_u_134
+    local v243 = v_u_168[v_u_132]
+    if #v_u_133 <= 0 then
+        if v_u_134 then
+            local v244 = v243.type
+            local v245 = v244 == "axis" and "Hold to adjust" or (v244 == "toggle" and "Tap to flip" or (v244 == "cycle" and "Tap to cycle" or (v244 == "action" and "Tap to fire" or (v244 == "group" and "Enter" or nil))))
+            return {
+                ["nav"] = "[\226\134\145] Back",
+                ["action"] = nil,
+                ["action"] = v245 and "[\226\134\144][\226\134\146] " .. v245 or ""
+            }
+        end
+        local v246 = v243.type
+        local v247 = v246 == "group" and "Enter" or (v246 == "toggle" and "Flip" or (v246 == "cycle" and "Cycle" or (v246 == "action" and "Fire" or (v246 == "axis" and "Adjust" or "Select"))))
+        local v248 = v_u_168[(v_u_132 - 2) % #v_u_168 + 1].name
+        local v249 = v_u_168[v_u_132 % #v_u_168 + 1].name
+        return {
+            ["nav"] = "[\226\134\145] Close  [\226\134\147] " .. v247,
+            ["action"] = "[\226\134\144] " .. v248 .. "  [\226\134\146] " .. v249
+        }
+    end
+    local v250 = v_u_133[#v_u_133]
+    local v251 = v250.index % #v250.modes + 1
+    local v252 = "[\226\134\145] Back  [\226\134\147] " .. v250.modes[v251].name
+    local v253
+    if #v_u_133 > 0 then
+        local v254 = v_u_133[#v_u_133]
+        v253 = v254.modes[v254.index]
+    else
+        v253 = v_u_168[v_u_132]
+    end
+    local v255 = v253.type
+    local v256 = v255 == "axis" and "Hold to adjust" or (v255 == "toggle" and "Tap to flip" or (v255 == "cycle" and "Tap to cycle" or (v255 == "action" and "Tap to fire" or (v255 == "group" and "Enter" or nil))))
+    return {
+        ["nav"] = v252,
+        ["action"] = v256 and "[\226\134\144][\226\134\146] " .. v256 or ""
+    }
+end
+function v_u_126.getTintColorName() -- name: getTintColorName
+    -- upvalues: (ref) v_u_140, (copy) v_u_139
+    return (v_u_140 < 1 or v_u_140 > #v_u_139) and "Custom" or v_u_139[v_u_140].name
+end
+function v_u_126.getActiveGroupName() -- name: getActiveGroupName
+    -- upvalues: (ref) v_u_131, (ref) v_u_133
+    if v_u_131 and #v_u_133 ~= 0 then
+        return v_u_133[1].groupName
+    else
+        return nil
+    end
+end
+local v_u_263 = {
+    {
+        ["get"] = nil,
+        ["key"] = "bloom",
+        ["group"] = "Custom Post Processing",
+        ["fmt"] = nil,
+        ["get"] = function() -- name: get
+            -- upvalues: (ref) v_u_36
+            return v_u_36
+        end,
+        ["fmt"] = function(p257) -- name: fmt
+            return string.format("Intensity: %.2f  Size: %.1f\nThreshold: %.2f", p257.Intensity, p257.Size, p257.Threshold)
+        end
+    },
+    {
+        ["get"] = nil,
+        ["key"] = "blur",
+        ["group"] = "Custom Post Processing",
+        ["fmt"] = nil,
+        ["get"] = function() -- name: get
+            -- upvalues: (ref) v_u_37
+            return v_u_37
+        end,
+        ["fmt"] = function(p258) -- name: fmt
+            return string.format("Size: %.1f", p258.Size)
+        end
+    },
+    {
+        ["get"] = nil,
+        ["key"] = "cc",
+        ["group"] = "Custom Post Processing",
+        ["fmt"] = nil,
+        ["get"] = function() -- name: get
+            -- upvalues: (ref) v_u_38
+            return v_u_38
+        end,
+        ["fmt"] = function(p259) -- name: fmt
+            -- upvalues: (copy) v_u_126
+            return string.format("Brightness: %.2f  Contrast: %.2f\nSaturation: %.2f  Tint: %s", p259.Brightness, p259.Contrast, p259.Saturation, v_u_126.getTintColorName())
+        end
+    },
+    {
+        ["get"] = nil,
+        ["key"] = "sunrays",
+        ["group"] = "Custom Post Processing",
+        ["fmt"] = nil,
+        ["get"] = function() -- name: get
+            -- upvalues: (ref) v_u_39
+            return v_u_39
+        end,
+        ["fmt"] = function(p260) -- name: fmt
+            return string.format("Intensity: %.2f  Spread: %.2f", p260.Intensity, p260.Spread)
+        end
+    },
+    {
+        ["get"] = nil,
+        ["key"] = "colorgrading",
+        ["group"] = "Custom Post Processing",
+        ["fmt"] = nil,
+        ["get"] = function() -- name: get
+            -- upvalues: (ref) v_u_40
+            return v_u_40
+        end,
+        ["fmt"] = function(p261) -- name: fmt
+            return string.format("Color Grading: %s", p261.TonemapperPreset.Name)
+        end
+    },
+    {
+        ["get"] = nil,
+        ["key"] = "dof",
+        ["group"] = "Custom Post Processing",
+        ["fmt"] = nil,
+        ["get"] = function() -- name: get
+            -- upvalues: (ref) v_u_35
+            return v_u_35
+        end,
+        ["fmt"] = function(p262) -- name: fmt
+            return string.format("Far: %.2f  Near: %.2f\nDistance: %.1f  Radius: %.1f", p262.FarIntensity, p262.NearIntensity, p262.FocusDistance, p262.InFocusRadius)
+        end
+    }
+}
+local function v_u_313(p264) -- name: StepFreecam
+    -- upvalues: (copy) v_u_126, (copy) v_u_122, (copy) v_u_123, (copy) v_u_124, (copy) v_u_125, (ref) v_u_121, (copy) v_u_3, (copy) v_u_5, (copy) v_u_4, (copy) v_u_12, (copy) v_u_1, (ref) v_u_96, (ref) v_u_97, (ref) v_u_120, (ref) v_u_119, (ref) v_u_88, (ref) v_u_93, (ref) v_u_89, (ref) v_u_90, (ref) v_u_42, (ref) v_u_43, (ref) v_u_32, (ref) v_u_91, (ref) v_u_92, (copy) v_u_263, (ref) v_u_33
+    v_u_126.ModeControl(p264)
+    local v265 = v_u_122:Update(p264, v_u_126.Movement())
+    local v266 = v_u_123:Update(p264, v_u_126.Pan())
+    local v267 = v_u_124:Update(p264, v_u_126.Fov())
+    local v268 = v_u_125:Update(p264, v_u_126.Roll())
+    local v269 = v_u_4(0.7002075382097097 / v_u_5((v_u_3(v_u_121 / 2))))
+    local v270 = v_u_121
+    v_u_121 = v_u_1(v_u_121 + v267 * v_u_12.Fov.Gain * (p264 / v269), 1, 120)
+    local v271 = v_u_121 - v270
+    if math.abs(v271) > 0.01 then
+        v_u_96 = os.clock()
+    end
+    if v265.Magnitude > 0.05 or (v266.Magnitude > 0.0005 or (math.abs(v268) > 0.0005 or math.abs(v267) > 0.0005)) then
+        v_u_97 = os.clock()
+    end
+    local v272 = v266 * v_u_12.Pan.Gain * (p264 / v269)
+    local v273 = v_u_120
+    local v274 = v272.X
+    local v275 = v272.Y
+    local v276 = v268 * v_u_12.Roll.Gain * (p264 / v269)
+    v_u_120 = v273 + Vector3.new(v274, v275, v276)
+    local v277 = v_u_120.x % 6.283185307179586
+    if v277 > 3.141592653589793 then
+        v277 = v277 - 6.283185307179586 or v277
+    end
+    local v278 = v_u_120.y % 6.283185307179586
+    if v278 > 3.141592653589793 then
+        v278 = v278 - 6.283185307179586 or v278
+    end
+    local v279 = v_u_120.z % 6.283185307179586
+    if v279 > 3.141592653589793 then
+        v279 = v279 - 6.283185307179586 or v279
+    end
+    v_u_120 = Vector3.new(v277, v278, v279)
+    local v280 = v265.X
+    local v281 = v265.Y
+    local v282 = -v265.Z
+    local v283 = Vector3.new(v280, v281, v282)
+    local v284 = CFrame.new(v_u_119) * CFrame.fromOrientation(v_u_120.x, v_u_120.y, v_u_120.z) * CFrame.new(v283 * v_u_12.Movement.Gain * p264)
+    if v_u_88 and (v_u_93 and v_u_93.Parent) then
+        local v285 = v_u_12.PlayerLock
+        local v286 = -v265.Z * v_u_12.Movement.Gain.Z * p264
+        local v287 = v265.Y * v_u_12.Movement.Gain.Y * p264
+        v_u_89 = v_u_1(v_u_89 + v286, v285.MinZoom, v285.MaxZoom)
+        v_u_90 = v_u_1(v_u_90 + v287, -v285.HeightRange, v285.HeightRange)
+        local v288 = v_u_90
+        v284 = CFrame.new(v_u_93.Position + Vector3.new(0, v288, 0)) * CFrame.fromOrientation(v_u_120.x, v_u_120.y, v_u_120.z) * CFrame.new(0, 0, v_u_89)
+    end
+    if v_u_42 and (v_u_42.Parent and (v_u_43 and (v_u_32 and v_u_32.Parent))) then
+        local v289 = v_u_43.mode
+        if v_u_126.getModeActive() then
+            if os.clock() - v_u_97 < 2 then
+                local v290 = {
+                    [#v290 + 1] = string.format("X: %.0f  Y: %.0f  Z: %.0f", v_u_119.X, v_u_119.Y, v_u_119.Z)
+                }
+                local v291 = #v290 + 1
+                local v292 = string.format
+                local v293 = v_u_120.X
+                local v294 = math.deg(v293)
+                local v295 = v_u_120.Y
+                local v296 = math.deg(v295)
+                local v297 = v_u_120.Z
+                v290[v291] = v292("Pitch: %.1f\194\176  Yaw: %.1f\194\176  Roll: %.1f\194\176", v294, v296, (math.deg(v297)))
+                if os.clock() - v_u_96 < 2 then
+                    v290[#v290 + 1] = string.format("Field of View: %.1f", v_u_121)
+                end
+                if p264 > 0 then
+                    local v298 = (v284.p - v_u_119).Magnitude / p264
+                    if v298 > 0.5 then
+                        v290[#v290 + 1] = string.format("Speed: %.1f", v298)
+                    end
+                end
+                local v299 = v_u_43.status
+                local v300 = table.concat(v290, "\n")
+                v299.bubble.Visible = v300 ~= ""
+                if v300 ~= "" then
+                    v299.label.Text = v300
+                end
+            else
+                v_u_43.status.bubble.Visible = false
+            end
+            if v_u_88 and (#v_u_91 > 0 and v_u_126.getActiveGroupName() ~= "Player Lock") then
+                local v301 = v_u_43.lock
+                local v302 = string.format("Lock: %s", v_u_91[v_u_92].Name)
+                v301.bubble.Visible = v302 ~= ""
+                if v302 ~= "" then
+                    v301.label.Text = v302
+                end
+            else
+                v_u_43.lock.bubble.Visible = false
+            end
+            local v303 = v_u_126.getActiveGroupName()
+            for _, v304 in ipairs(v_u_263) do
+                local v305 = v304.get()
+                if v305 and (v305.Enabled and v303 ~= v304.group) then
+                    local v306 = v_u_43[v304.key]
+                    local v307 = v304.fmt(v305)
+                    v306.bubble.Visible = v307 ~= ""
+                    if v307 ~= "" then
+                        v306.label.Text = v307
+                    end
+                else
+                    v_u_43[v304.key].bubble.Visible = false
+                end
+            end
+            v289.bubble.Visible = true
+            local v308 = v_u_126.getModeBreadcrumb()
+            v289.breadcrumb.Text = v308
+            v289.breadcrumb.Visible = v308 ~= ""
+            local v309 = v_u_126.getModeName()
+            local v310 = v_u_126.getModeDisplay()
+            local v311 = v289.title
+            if v310 ~= "" then
+                v309 = v309 .. ": " .. v310 or v309
+            end
+            v311.Text = v309
+            local v312 = v_u_126.getModeHint()
+            v289.nav.Text = v312.nav
+            v289.nav.Visible = v312.nav ~= ""
+            v289.action.Text = v312.action
+            v289.action.Visible = v312.action ~= ""
+            v_u_42.Visible = true
+        else
+            v_u_42.Visible = false
+        end
+    end
+    v_u_119 = v284.p
+    v_u_33.CFrame = v284
+    v_u_33.Focus = v284
+    v_u_33.FieldOfView = v_u_121
+end
+v_u_44 = {}
+local v_u_314 = nil
+local v_u_315 = nil
+local v_u_316 = nil
+local v_u_317 = nil
+local v_u_318 = nil
+local v_u_319 = nil
+local v_u_320 = {}
+local v_u_321 = {
+    ["Backpack"] = true,
+    ["Chat"] = true,
+    ["Health"] = true,
+    ["PlayerList"] = true
+}
+local v_u_322 = {
+    ["BadgesNotificationsActive"] = true,
+    ["PointsNotificationsActive"] = true
+}
+function v_u_44.Push() -- name: Push
+    -- upvalues: (copy) v_u_321, (copy) v_u_8, (copy) v_u_322, (ref) v_u_31, (ref) v_u_320, (ref) v_u_85, (ref) v_u_94, (ref) v_u_319, (ref) v_u_33, (ref) v_u_316, (ref) v_u_318, (ref) v_u_317, (ref) v_u_315, (copy) v_u_9, (ref) v_u_314
+    for v323 in pairs(v_u_321) do
+        v_u_321[v323] = v_u_8:GetCoreGuiEnabled(Enum.CoreGuiType[v323])
+        v_u_8:SetCoreGuiEnabled(Enum.CoreGuiType[v323], false)
+    end
+    for v324 in pairs(v_u_322) do
+        v_u_322[v324] = v_u_8:GetCore(v324)
+        v_u_8:SetCore(v324, false)
+    end
+    local v325 = v_u_31:FindFirstChildOfClass("PlayerGui")
+    if v325 then
+        for _, v326 in pairs(v325:GetChildren()) do
+            if v326:IsA("ScreenGui") and v326.Enabled then
+                v_u_320[#v_u_320 + 1] = v326
+                v326.Enabled = false
+            end
+        end
+        v_u_85 = v325.ChildAdded:Connect(function(p327)
+            -- upvalues: (ref) v_u_320, (ref) v_u_94
+            if p327:IsA("ScreenGui") and p327.Enabled then
+                v_u_320[#v_u_320 + 1] = p327
+                p327.Enabled = v_u_94
+            end
+        end)
+    end
+    v_u_319 = v_u_33.FieldOfView
+    v_u_33.FieldOfView = 70
+    v_u_316 = v_u_33.CameraType
+    v_u_33.CameraType = Enum.CameraType.Custom
+    v_u_318 = v_u_33.CFrame
+    v_u_317 = v_u_33.Focus
+    v_u_315 = v_u_9.MouseIconEnabled
+    v_u_9.MouseIconEnabled = false
+    v_u_314 = Enum.MouseBehavior.Default
+    v_u_9.MouseBehavior = Enum.MouseBehavior.Default
+end
+function v_u_44.Pop() -- name: Pop
+    -- upvalues: (copy) v_u_321, (copy) v_u_8, (copy) v_u_322, (ref) v_u_320, (ref) v_u_32, (ref) v_u_85, (ref) v_u_33, (ref) v_u_319, (ref) v_u_316, (ref) v_u_318, (ref) v_u_317, (copy) v_u_9, (ref) v_u_315, (ref) v_u_314
+    for v328, v329 in pairs(v_u_321) do
+        v_u_8:SetCoreGuiEnabled(Enum.CoreGuiType[v328], v329)
+    end
+    for v330, v331 in pairs(v_u_322) do
+        v_u_8:SetCore(v330, v331)
+    end
+    for _, v332 in pairs(v_u_320) do
+        if v332.Parent and v332 ~= v_u_32 then
+            v332.Enabled = true
+        end
+    end
+    if v_u_85 then
+        v_u_85:Disconnect()
+        v_u_85 = nil
+    end
+    v_u_320 = {}
+    v_u_33.FieldOfView = v_u_319
+    v_u_319 = nil
+    v_u_33.CameraType = v_u_316
+    v_u_316 = nil
+    v_u_33.CFrame = v_u_318
+    v_u_318 = nil
+    v_u_33.Focus = v_u_317
+    v_u_317 = nil
+    v_u_9.MouseIconEnabled = v_u_315
+    v_u_315 = nil
+    v_u_9.MouseBehavior = v_u_314
+    v_u_314 = nil
+end
+function v_u_44.getScreenGuis() -- name: getScreenGuis
+    -- upvalues: (ref) v_u_320
+    return v_u_320
+end
+local function v_u_336(p333) -- name: removePlayerFromList
+    -- upvalues: (ref) v_u_91, (ref) v_u_92, (ref) v_u_88
+    for v334, v335 in ipairs(v_u_91) do
+        if v335 == p333 then
+            table.remove(v_u_91, v334)
+            if v_u_92 == v334 and v_u_88 then
+                v_u_88 = false
+                v_u_92 = 1
+            end
+            if v334 < v_u_92 then
+                v_u_92 = v_u_92 - 1
+            end
+            if v_u_92 > #v_u_91 or v_u_92 < 1 then
+                v_u_92 = 1
+                return
+            end
+            break
+        end
+    end
+end
+local function v_u_341() -- name: initializePlayerList
+    -- upvalues: (ref) v_u_91, (copy) v_u_6, (ref) v_u_31, (ref) v_u_92, (ref) v_u_86, (ref) v_u_87, (copy) v_u_336
+    v_u_91 = v_u_6:GetPlayers()
+    for v337, v338 in ipairs(v_u_91) do
+        if v338 == v_u_31 then
+            v_u_92 = v337
+            break
+        end
+    end
+    v_u_86 = v_u_6.PlayerAdded:Connect(function(p339)
+        -- upvalues: (ref) v_u_91
+        local v340 = v_u_91
+        table.insert(v340, p339)
+    end)
+    v_u_87 = v_u_6.PlayerRemoving:Connect(v_u_336)
+end
+local function v_u_390() -- name: StartFreecam
+    -- upvalues: (copy) v_u_341, (ref) v_u_33, (ref) v_u_120, (ref) v_u_119, (ref) v_u_121, (copy) v_u_122, (copy) v_u_123, (copy) v_u_124, (copy) v_u_125, (ref) v_u_32, (ref) v_u_31, (ref) v_u_42, (ref) v_u_43, (ref) v_u_44, (ref) v_u_63, (copy) v_u_41, (copy) v_u_7, (copy) v_u_313, (copy) v_u_126
+    v_u_341()
+    local v342 = v_u_33.CFrame
+    v_u_120 = Vector3.new(v342:toEulerAnglesYXZ())
+    v_u_119 = v342.p
+    v_u_121 = v_u_33.FieldOfView
+    v_u_122:Reset((Vector3.new()))
+    v_u_123:Reset(Vector2.new())
+    v_u_124:Reset(0)
+    v_u_125:Reset(0)
+    v_u_32 = v_u_31:WaitForChild("PlayerGui"):WaitForChild("Freecam")
+    if not (v_u_42 and v_u_42.Parent) then
+        local v_u_343 = Instance.new("Frame")
+        v_u_343.Name = "FreecamCustomGui"
+        v_u_343.BackgroundTransparency = 1
+        v_u_343.AutomaticSize = Enum.AutomaticSize.XY
+        v_u_343.AnchorPoint = Vector2.new(1, 1)
+        v_u_343.Position = UDim2.new(1, -16, 1, -16)
+        v_u_343.Size = UDim2.new(0, 0, 0, 0)
+        v_u_343.Visible = false
+        local v344 = Instance.new("UIListLayout")
+        v344.SortOrder = Enum.SortOrder.LayoutOrder
+        v344.FillDirection = Enum.FillDirection.Vertical
+        v344.VerticalAlignment = Enum.VerticalAlignment.Bottom
+        v344.HorizontalAlignment = Enum.HorizontalAlignment.Right
+        v344.Padding = UDim.new(0, 6)
+        v344.Parent = v_u_343
+        local function v351(p345, p346) -- name: makeBubble
+            -- upvalues: (copy) v_u_343
+            local v347 = Instance.new("Frame")
+            v347.Name = p345
+            v347.BackgroundColor3 = Color3.fromRGB(31, 31, 31)
+            v347.BackgroundTransparency = 0.4
+            v347.BorderSizePixel = 0
+            v347.AutomaticSize = Enum.AutomaticSize.XY
+            v347.Size = UDim2.new(0, 0, 0, 0)
+            v347.LayoutOrder = p346
+            v347.Visible = false
+            local v348 = Instance.new("UICorner")
+            v348.CornerRadius = UDim.new(0, 8)
+            v348.Parent = v347
+            local v349 = Instance.new("UIPadding")
+            v349.PaddingTop = UDim.new(0, 8)
+            v349.PaddingBottom = UDim.new(0, 8)
+            v349.PaddingLeft = UDim.new(0, 12)
+            v349.PaddingRight = UDim.new(0, 12)
+            v349.Parent = v347
+            local v350 = Instance.new("TextLabel")
+            v350.Name = "Label"
+            v350.BackgroundTransparency = 1
+            v350.TextColor3 = Color3.new(1, 1, 1)
+            v350.Font = Enum.Font.GothamMedium
+            v350.TextSize = 14
+            v350.TextXAlignment = Enum.TextXAlignment.Left
+            v350.AutomaticSize = Enum.AutomaticSize.XY
+            v350.Size = UDim2.new(0, 0, 0, 0)
+            v350.Parent = v347
+            v347.Parent = v_u_343
+            return v347, v350
+        end
+        local v352, v353 = v351("BloomBubble", 1)
+        local v354, v355 = v351("BlurBubble", 2)
+        local v356, v357 = v351("CCBubble", 3)
+        local v358, v359 = v351("SunRaysBubble", 4)
+        local v360, v361 = v351("ColorGradingBubble", 5)
+        local v362, v363 = v351("DofBubble", 6)
+        local v364, v365 = v351("LockBubble", 7)
+        local v366, v367 = v351("StatusBubble", 8)
+        local v_u_368 = Instance.new("Frame")
+        v_u_368.Name = "ModeBubble"
+        v_u_368.BackgroundColor3 = Color3.fromRGB(31, 31, 31)
+        v_u_368.BackgroundTransparency = 0.4
+        v_u_368.BorderSizePixel = 0
+        v_u_368.AutomaticSize = Enum.AutomaticSize.XY
+        v_u_368.Size = UDim2.new(0, 0, 0, 0)
+        v_u_368.LayoutOrder = 9
+        v_u_368.Visible = false
+        local v369 = Instance.new("UICorner")
+        v369.CornerRadius = UDim.new(0, 8)
+        v369.Parent = v_u_368
+        local v370 = Instance.new("UIPadding")
+        v370.PaddingTop = UDim.new(0, 8)
+        v370.PaddingBottom = UDim.new(0, 8)
+        v370.PaddingLeft = UDim.new(0, 12)
+        v370.PaddingRight = UDim.new(0, 12)
+        v370.Parent = v_u_368
+        local v371 = Instance.new("UIListLayout")
+        v371.SortOrder = Enum.SortOrder.LayoutOrder
+        v371.FillDirection = Enum.FillDirection.Vertical
+        v371.Padding = UDim.new(0, 2)
+        v371.Parent = v_u_368
+        local function v378(p372, p373, p374, p375, p376) -- name: makeModeLabel
+            -- upvalues: (copy) v_u_368
+            local v377 = Instance.new("TextLabel")
+            v377.Name = p372
+            v377.BackgroundTransparency = 1
+            v377.TextColor3 = p376
+            v377.Font = p374
+            v377.TextSize = p375
+            v377.TextXAlignment = Enum.TextXAlignment.Left
+            v377.AutomaticSize = Enum.AutomaticSize.XY
+            v377.Size = UDim2.new(0, 0, 0, 0)
+            v377.LayoutOrder = p373
+            v377.Parent = v_u_368
+            return v377
+        end
+        local v379 = v378("Breadcrumb", 1, Enum.Font.Gotham, 11, Color3.fromRGB(100, 100, 100))
+        local v380 = v378("Title", 2, Enum.Font.GothamBold, 14, Color3.new(1, 1, 1))
+        local v381 = v378("NavHint", 3, Enum.Font.Gotham, 12, Color3.fromRGB(120, 120, 120))
+        local v382 = v378("ActionHint", 4, Enum.Font.GothamMedium, 12, Color3.fromRGB(200, 200, 200))
+        v_u_368.Parent = v_u_343
+        v_u_42 = v_u_343
+        local v383 = {
+            ["bloom"] = {
+                ["bubble"] = v352,
+                ["label"] = v353
+            },
+            ["blur"] = {
+                ["bubble"] = v354,
+                ["label"] = v355
+            },
+            ["cc"] = {
+                ["bubble"] = v356,
+                ["label"] = v357
+            },
+            ["sunrays"] = {
+                ["bubble"] = v358,
+                ["label"] = v359
+            },
+            ["colorgrading"] = {
+                ["bubble"] = v360,
+                ["label"] = v361
+            },
+            ["dof"] = {
+                ["bubble"] = v362,
+                ["label"] = v363
+            },
+            ["lock"] = {
+                ["bubble"] = v364,
+                ["label"] = v365
+            },
+            ["status"] = {
+                ["bubble"] = v366,
+                ["label"] = v367
+            },
+            ["mode"] = {
+                ["bubble"] = v_u_368,
+                ["breadcrumb"] = v379,
+                ["title"] = v380,
+                ["nav"] = v381,
+                ["action"] = v382
+            }
+        }
+        v_u_43 = v383
+        v_u_343.Parent = v_u_32
+    end
+    v_u_44.Push()
+    v_u_32.Enabled = true
+    for _, v384 in ipairs(v_u_63) do
+        local v385 = v_u_41[v384.key]
+        local v386 = v384.class
+        local v387 = "Freecam" .. v384.key
+        local v388 = Instance.new(v386)
+        v388.Name = v387
+        v388.Parent = v_u_33
+        for _, v389 in ipairs(v384.props) do
+            v388[v389] = v385[v389]
+        end
+        v388.Enabled = v385.Enabled
+        v384.set(v388)
+    end
+    v_u_7:BindToRenderStep("Freecam", Enum.RenderPriority.Camera.Value, v_u_313)
+    v_u_126.StartCapture()
+end
+local function v_u_395() -- name: StopFreecam
+    -- upvalues: (ref) v_u_86, (ref) v_u_87, (ref) v_u_88, (ref) v_u_92, (ref) v_u_91, (copy) v_u_62, (ref) v_u_59, (ref) v_u_63, (copy) v_u_41, (ref) v_u_32, (ref) v_u_94, (ref) v_u_95, (copy) v_u_126, (copy) v_u_7, (ref) v_u_44
+    if v_u_86 then
+        v_u_86:Disconnect()
+        v_u_86 = nil
+    end
+    if v_u_87 then
+        v_u_87:Disconnect()
+        v_u_87 = nil
+    end
+    v_u_88 = false
+    v_u_92 = 1
+    v_u_91 = {}
+    v_u_62()
+    v_u_59 = false
+    for _, v391 in ipairs(v_u_63) do
+        local v392 = v391.get()
+        if v392 then
+            local v393 = v_u_41[v391.key]
+            v393.Enabled = v392.Enabled
+            for _, v394 in ipairs(v391.props) do
+                v393[v394] = v392[v394]
+            end
+            v392:Destroy()
+            v391.set(nil)
+        end
+    end
+    if v_u_32 and v_u_32.Parent then
+        v_u_32.Enabled = false
+    end
+    v_u_94 = false
+    v_u_95 = false
+    v_u_126.StopCapture()
+    v_u_7:UnbindFromRenderStep("Freecam")
+    v_u_44.Pop()
+end
+local v_u_396 = false
+v_u_99.StateChanged:Connect(function(p397)
+    -- upvalues: (ref) v_u_396, (copy) v_u_395, (copy) v_u_390, (ref) v_u_47, (copy) v_u_12
+    if p397 then
+        if v_u_396 then
+            v_u_395()
+        else
+            v_u_390()
+        end
+        v_u_396 = not v_u_396
+        if v_u_47 then
+            script:SetAttribute(v_u_12.AttributeName, v_u_396)
+        end
+    end
+end)
+if v_u_47 then
+    script:SetAttribute(v_u_12.AttributeName, v_u_396)
+    script:GetAttributeChangedSignal(v_u_12.AttributeName):Connect(function()
+        -- upvalues: (copy) v_u_12, (ref) v_u_396, (copy) v_u_390, (copy) v_u_395
+        local v398 = script:GetAttribute(v_u_12.AttributeName)
+        if typeof(v398) == "boolean" then
+            if v398 ~= v_u_396 then
+                if v398 then
+                    v_u_390()
+                    v_u_396 = true
+                    return
+                end
+                v_u_395()
+                v_u_396 = false
+            end
+        else
+            script:SetAttribute(v_u_12.AttributeName, v_u_396)
+        end
+    end)
+end
+return {}
+-- Script Path: game:GetService("CoreGui").RobloxGui.Modules.Server.FreeCamera.FreeCameraInstaller
+-- Took 0s to decompile.
+-- Executor: Delta (1.1.731.944)
+
+local v_u_1 = game:DefineFastFlag("AllowLuobuFreecamGroup", false)
+local v_u_2 = game:DefineFastFlag("UseGetCanManageAsync", false)
+if v_u_2 then
+    v_u_2 = game:GetEngineFeature("LuaGetCanManageAsync")
+end
+local v_u_3 = game:DefineFastFlag("FreeCameraToIAS", false)
+if v_u_3 then
+    v_u_3 = game:GetEngineFeature("PlayerScriptStatusProperty")
+end
+local v_u_4 = { 4358041 }
+local v_u_5 = { 7842878 }
+local v_u_6 = game:GetService("HttpRbxApiService")
+local v_u_7 = game:GetService("HttpService")
+local v_u_8 = game:GetService("Players")
+local v_u_9 = game:GetService("PolicyService")
+local v_u_10 = game:GetService("RunService")
+local v_u_11 = game:GetService("StarterPlayer")
+local v12 = game:GetService("CoreGui"):WaitForChild("RobloxGui")
+local v13 = game:GetService("CorePackages")
+local v_u_14 = require(v13.Workspace.Packages.CoreScriptsCommon).Url
+local v_u_15 = require(v12.Modules.Server.ServerUtil)
+local v_u_16 = require(v12.Modules.Common.Flags.FFlagUserPresenceTokenRccCheckPermissionsLua)
+return function() -- name: Install
+    -- upvalues: (copy) v_u_3, (copy) v_u_11, (copy) v_u_15, (copy) v_u_10, (copy) v_u_2, (copy) v_u_14, (copy) v_u_7, (copy) v_u_16, (copy) v_u_6, (copy) v_u_4, (copy) v_u_1, (copy) v_u_9, (copy) v_u_5, (copy) v_u_8
+    local function v_u_20(p17, p18) -- name: WaitForChildOfClass
+        local v19 = p17:FindFirstChildOfClass(p18)
+        while not v19 or v19.ClassName ~= p18 do
+            v19 = p17.ChildAdded:Wait()
+        end
+        return v19
+    end
+    local function v_u_28(p21) -- name: AddFreeCamera
+        -- upvalues: (copy) v_u_20, (ref) v_u_3, (ref) v_u_11, (ref) v_u_15
+        local v22 = v_u_20(p21, "PlayerGui")
+        local v23
+        if v_u_3 then
+            local v24 = v_u_11.PlayerModuleStatus
+            local v25 = (v24 == 1 and true or v24 == 2) and "FreeCameraIAS" or "FreeCamera"
+            v23 = script.Parent:WaitForChild(v25)
+        else
+            v23 = script.Parent:WaitForChild("FreeCamera")
+        end
+        local v26 = Instance.new("ScreenGui")
+        v26.Name = "Freecam"
+        v26.ResetOnSpawn = false
+        local v27 = Instance.new("LocalScript")
+        v27.Name = "FreecamScript"
+        if v_u_15.getFFlagServerCoreScriptSourceCode() then
+            v27.Source = v_u_15.getSourceForServerScript(v23)
+        else
+            v27.Source = v23.Source
+        end
+        v27.Parent = v26
+        v26.Parent = v22
+    end
+    local function v_u_48(p_u_29) -- name: ShouldAddFreeCam
+        -- upvalues: (ref) v_u_10, (ref) v_u_2, (ref) v_u_14, (ref) v_u_7, (ref) v_u_16, (ref) v_u_6, (ref) v_u_4, (ref) v_u_1, (ref) v_u_9, (ref) v_u_5
+        if v_u_10:IsStudio() then
+            return true
+        end
+        if p_u_29.UserId <= 0 then
+            return false
+        end
+        if v_u_2 then
+            local v30, v31 = pcall(p_u_29.GetCanManageAsync, p_u_29)
+            if v30 and v31 then
+                return true
+            end
+        else
+            local v39, v40 = pcall(function()
+                -- upvalues: (ref) v_u_14, (ref) v_u_7, (copy) p_u_29, (ref) v_u_16, (ref) v_u_6
+                local v32 = string.format(v_u_14.APIS_URL .. "asset-permissions-api/v1/rcc/assets/check-permissions")
+                local v33 = v_u_7
+                local v34 = {}
+                local v35 = {}
+                local v36 = {
+                    ["subject"] = nil,
+                    ["action"] = "Edit",
+                    ["assetId"] = nil,
+                    ["subject"] = {
+                        ["subjectType"] = "User",
+                        ["subjectId"] = nil,
+                        ["subjectId"] = p_u_29.UserId
+                    },
+                    ["assetId"] = game.PlaceId
+                }
+                __set_list(v35, 1, {v36})
+                v34.requests = v35
+                local v37 = v33:JSONEncode(v34)
+                local v38
+                if v_u_16 then
+                    v38 = v_u_6:PostAsyncFullUrlForPlayer(v32, v37, p_u_29)
+                else
+                    v38 = v_u_6:PostAsyncFullUrl(v32, v37)
+                end
+                return v_u_7:JSONDecode(v38)
+            end)
+            if v39 then
+                local v41 = v40.results[1]
+                if v41.value and v41.value.status == "HasPermission" then
+                    return true
+                end
+            end
+        end
+        for _, v42 in ipairs(v_u_4) do
+            local v43, v44 = pcall(p_u_29.IsInGroup, p_u_29, v42)
+            if v43 and v44 then
+                return true
+            end
+        end
+        if v_u_1 and (game:GetEngineFeature("LuobuModerationStatus") and v_u_9.IsLuobuServer == Enum.TriStateBoolean.True) then
+            for _, v45 in ipairs(v_u_5) do
+                local v46, v47 = pcall(p_u_29.IsInGroup, p_u_29, v45)
+                if v46 and v47 then
+                    return true
+                end
+            end
+        end
+        return false
+    end
+    local function v50(p49) -- name: PlayerAdded
+        -- upvalues: (copy) v_u_48, (copy) v_u_28
+        if v_u_48(p49) then
+            v_u_28(p49)
+        end
+    end
+    v_u_8.PlayerAdded:Connect(v50)
+    for _, v51 in ipairs(v_u_8:GetPlayers()) do
+        coroutine.wrap(v50)(v51)
+    end
+end
+-- Script Path: game:GetService("Players").Axelgallitooo12.PlayerGui.FreeCamGui.Click.FreeCamModule
+-- Took 0.02s to decompile.
+-- Executor: Delta (1.1.731.944)
+
+local v_u_1 = math.abs
+local v_u_2 = math.clamp
+local v_u_3 = math.exp
+local v_u_4 = math.rad
+local v_u_5 = math.sign
+local v_u_6 = math.sqrt
+local v_u_7 = math.tan
+local v_u_8 = game:GetService("ContextActionService")
+local v_u_9 = game:GetService("Players")
+local v_u_10 = game:GetService("RunService")
+local v_u_11 = game:GetService("StarterGui")
+local v_u_12 = game:GetService("UserInputService")
+local v_u_13 = game:GetService("Workspace")
+local v_u_14 = UserSettings().GameSettings
+local v_u_15 = {
+    ["FreeCamGui"] = true
+}
+local v_u_16 = v_u_9.LocalPlayer
+if not v_u_16 then
+    v_u_9:GetPropertyChangedSignal("LocalPlayer"):Wait()
+    v_u_16 = v_u_9.LocalPlayer
+end
+local v_u_17 = v_u_13.CurrentCamera
+v_u_13:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+    -- upvalues: (copy) v_u_13, (ref) v_u_17
+    local v18 = v_u_13.CurrentCamera
+    if v18 then
+        v_u_17 = v18
+    end
+end)
+local v19, v20 = pcall(function()
+    return UserSettings():IsUserFeatureEnabled("UserExitFreecamBreaksWithShiftlock")
+end)
+local v_u_21 = v19 and v20
+local v22, v23 = pcall(function()
+    return UserSettings():IsUserFeatureEnabled("UserShowGuiHideToggles")
+end)
+local v_u_24 = v22 and v23
+local _ = Enum.ContextActionPriority.Low.Value
+local v_u_25 = Enum.ContextActionPriority.High.Value
+local v_u_26 = Enum.ContextActionPriority.High.Value + 1
+local v_u_27 = Vector2.new(0.75, 1) * 8
+local v_u_28 = {}
+v_u_28.__index = v_u_28
+function v_u_28.new(p29, p30) -- name: new
+    -- upvalues: (copy) v_u_28
+    local v31 = v_u_28
+    local v32 = setmetatable({}, v31)
+    v32.f = p29
+    v32.p = p30
+    v32.v = p30 * 0
+    return v32
+end
+function v_u_28.Update(p33, p34, p35) -- name: Update
+    -- upvalues: (copy) v_u_3
+    local v36 = p33.f * 2 * 3.141592653589793
+    local v37 = p33.p
+    local v38 = p33.v
+    local v39 = p35 - v37
+    local v40 = v_u_3(-v36 * p34)
+    local v41 = p35 + (v38 * p34 - v39 * (v36 * p34 + 1)) * v40
+    local v42 = (v36 * p34 * (v39 * v36 - v38) + v38) * v40
+    p33.p = v41
+    p33.v = v42
+    return v41
+end
+function v_u_28.Reset(p43, p44) -- name: Reset
+    p43.p = p44
+    p43.v = p44 * 0
+end
+local v_u_45 = Vector3.new()
+local v_u_46 = Vector2.new()
+local v_u_47 = 0
+local v_u_48 = v_u_28.new(1.5, (Vector3.new()))
+local v_u_49 = v_u_28.new(1, Vector2.new())
+local v_u_50 = v_u_28.new(4, 0)
+local v_u_51 = {}
+local function v_u_53(p52) -- name: thumbstickCurve
+    -- upvalues: (copy) v_u_5, (copy) v_u_1, (copy) v_u_3, (copy) v_u_2
+    return v_u_5(p52) * v_u_2((v_u_3(2 * ((v_u_1(p52) - 0.15) / 0.85)) - 1) / 6.38905609893065, 0, 1)
+end
+local v_u_54 = {
+    ["ButtonX"] = 0,
+    ["ButtonY"] = 0,
+    ["DPadDown"] = 0,
+    ["DPadUp"] = 0,
+    ["ButtonL2"] = 0,
+    ["ButtonR2"] = 0,
+    ["Thumbstick1"] = nil,
+    ["Thumbstick2"] = nil,
+    ["Thumbstick1"] = Vector2.new(),
+    ["Thumbstick2"] = Vector2.new()
+}
+local v_u_55 = {
+    ["W"] = 0,
+    ["A"] = 0,
+    ["S"] = 0,
+    ["D"] = 0,
+    ["E"] = 0,
+    ["Q"] = 0,
+    ["U"] = 0,
+    ["H"] = 0,
+    ["J"] = 0,
+    ["K"] = 0,
+    ["I"] = 0,
+    ["Y"] = 0,
+    ["Up"] = 0,
+    ["Down"] = 0,
+    ["LeftShift"] = 0,
+    ["RightShift"] = 0
+}
+local v_u_56 = {
+    ["Delta"] = nil,
+    ["MouseWheel"] = 0,
+    ["Delta"] = Vector2.new()
+}
+local v_u_57 = {
+    ["PanDelta"] = Vector2.new()
+}
+local v_u_58 = {}
+local v_u_59 = {}
+local v_u_60 = Vector2.new(1, 1) * 0.04908738521234052
+local v_u_61 = Vector2.new(1, 1) * 0.39269908169872414
+local v_u_62 = Vector2.new(1, 1) * 0.02454369260617026
+local v_u_63 = 1
+function v_u_51.Vel(p64) -- name: Vel
+    -- upvalues: (ref) v_u_63, (copy) v_u_55, (copy) v_u_2, (ref) v_u_53, (copy) v_u_54, (copy) v_u_12
+    v_u_63 = v_u_2(v_u_63 + p64 * (v_u_55.Up - v_u_55.Down) * 0.75, 0.01, 4)
+    local v65 = v_u_53(v_u_54.Thumbstick1.X)
+    local v66 = v_u_53(v_u_54.ButtonR2) - v_u_53(v_u_54.ButtonL2)
+    local v67 = v_u_53
+    local v68 = -v_u_54.Thumbstick1.Y
+    local v69 = Vector3.new(v65, v66, v67(v68)) * Vector3.new(1, 1, 1)
+    local v70 = v_u_55.D - v_u_55.A + v_u_55.K - v_u_55.H
+    local v71 = v_u_55.E - v_u_55.Q + v_u_55.I - v_u_55.Y
+    local v72 = v_u_55.S - v_u_55.W + v_u_55.J - v_u_55.U
+    local v73 = Vector3.new(v70, v71, v72) * Vector3.new(1, 1, 1)
+    local v74 = v_u_12:IsKeyDown(Enum.KeyCode.LeftShift) or v_u_12:IsKeyDown(Enum.KeyCode.RightShift)
+    return (v69 + v73) * (v_u_63 * (v74 and 0.25 or 1))
+end
+function v_u_51.Pan(_) -- name: Pan
+    -- upvalues: (ref) v_u_53, (copy) v_u_54, (copy) v_u_61, (copy) v_u_56, (copy) v_u_60, (copy) v_u_57, (copy) v_u_62
+    local v75 = Vector2.new(v_u_53(v_u_54.Thumbstick2.Y), v_u_53(-v_u_54.Thumbstick2.X)) * v_u_61
+    local v76 = v_u_56.Delta * v_u_60
+    v_u_56.Delta = Vector2.new()
+    local v77 = v_u_57.PanDelta * v_u_62
+    v_u_57.PanDelta = Vector2.new()
+    return v75 + v76 + v77
+end
+function v_u_51.Fov(_) -- name: Fov
+    -- upvalues: (copy) v_u_54, (copy) v_u_56
+    local v78 = (v_u_54.ButtonX - v_u_54.ButtonY) * 0.25
+    local v79 = v_u_56.MouseWheel * 1
+    v_u_56.MouseWheel = 0
+    return v78 + v79
+end
+local function v_u_82(_, p80, p81) -- name: Keypress
+    -- upvalues: (copy) v_u_55
+    v_u_55[p81.KeyCode.Name] = p80 == Enum.UserInputState.Begin and 1 or 0
+    return Enum.ContextActionResult.Sink
+end
+local function v_u_85(_, p83, p84) -- name: GpButton
+    -- upvalues: (copy) v_u_54
+    v_u_54[p84.KeyCode.Name] = p83 == Enum.UserInputState.Begin and 1 or 0
+    return Enum.ContextActionResult.Sink
+end
+local function v_u_88(_, _, p86) -- name: MousePan
+    -- upvalues: (copy) v_u_56
+    local v87 = p86.Delta
+    v_u_56.Delta = Vector2.new(-v87.y, -v87.x)
+    return Enum.ContextActionResult.Sink
+end
+local function v_u_90(_, _, p89) -- name: Thumb
+    -- upvalues: (copy) v_u_54
+    v_u_54[p89.KeyCode.Name] = p89.Position
+    return Enum.ContextActionResult.Sink
+end
+local function v_u_92(_, _, p91) -- name: Trigger
+    -- upvalues: (copy) v_u_54
+    v_u_54[p91.KeyCode.Name] = p91.Position.z
+    return Enum.ContextActionResult.Sink
+end
+local function v_u_94(_, _, p93) -- name: MouseWheel
+    -- upvalues: (copy) v_u_56
+    v_u_56[p93.UserInputType.Name] = -p93.Position.z
+    return Enum.ContextActionResult.Sink
+end
+function v_u_51.StartCapture() -- name: StartCapture
+    -- upvalues: (copy) v_u_8, (copy) v_u_82, (copy) v_u_25, (copy) v_u_88, (copy) v_u_94, (copy) v_u_26, (copy) v_u_85, (copy) v_u_92, (copy) v_u_90, (copy) v_u_12, (ref) v_u_59, (copy) v_u_13, (ref) v_u_58, (copy) v_u_57
+    v_u_8:BindActionAtPriority("FreecamKeyboard", v_u_82, false, v_u_25, Enum.KeyCode.W, Enum.KeyCode.U, Enum.KeyCode.A, Enum.KeyCode.H, Enum.KeyCode.S, Enum.KeyCode.J, Enum.KeyCode.D, Enum.KeyCode.K, Enum.KeyCode.E, Enum.KeyCode.I, Enum.KeyCode.Q, Enum.KeyCode.Y, Enum.KeyCode.Up, Enum.KeyCode.Down)
+    v_u_8:BindActionAtPriority("FreecamMousePan", v_u_88, false, v_u_25, Enum.UserInputType.MouseMovement)
+    v_u_8:BindActionAtPriority("FreecamMouseWheel", v_u_94, false, v_u_26, Enum.UserInputType.MouseWheel)
+    v_u_8:BindActionAtPriority("FreecamGamepadButton", v_u_85, false, v_u_25, Enum.KeyCode.ButtonX, Enum.KeyCode.ButtonY)
+    v_u_8:BindActionAtPriority("FreecamGamepadTrigger", v_u_92, false, v_u_25, Enum.KeyCode.ButtonR2, Enum.KeyCode.ButtonL2)
+    v_u_8:BindActionAtPriority("FreecamGamepadThumbstick", v_u_90, false, v_u_25, Enum.KeyCode.Thumbstick1, Enum.KeyCode.Thumbstick2)
+    if v_u_12.TouchEnabled then
+        local v95 = v_u_59
+        local v96 = v_u_12.TouchStarted
+        local function v99(p97, _)
+            -- upvalues: (ref) v_u_13, (ref) v_u_58
+            local v98 = v_u_13.CurrentCamera.ViewportSize.X
+            if p97.Position.X >= v98 / 2 then
+                v_u_58[p97] = {
+                    ["prevPos"] = p97.Position
+                }
+            end
+        end
+        table.insert(v95, v96:Connect(v99))
+        local v100 = v_u_59
+        local v101 = v_u_12.TouchMoved
+        local function v105(p102, _)
+            -- upvalues: (ref) v_u_58, (ref) v_u_57
+            local v103 = v_u_58[p102]
+            if v103 then
+                local v104 = p102.Position - v103.prevPos
+                v_u_57.PanDelta = v_u_57.PanDelta + Vector2.new(-v104.Y, -v104.X)
+                v103.prevPos = p102.Position
+            end
+        end
+        table.insert(v100, v101:Connect(v105))
+        local v106 = v_u_59
+        local v107 = v_u_12.TouchEnded
+        local function v109(p108, _)
+            -- upvalues: (ref) v_u_58
+            v_u_58[p108] = nil
+        end
+        table.insert(v106, v107:Connect(v109))
+    end
+end
+function v_u_51.StopCapture() -- name: StopCapture
+    -- upvalues: (ref) v_u_63, (copy) v_u_54, (copy) v_u_55, (copy) v_u_56, (copy) v_u_57, (ref) v_u_58, (ref) v_u_59, (copy) v_u_8
+    v_u_63 = 1
+    local v110 = v_u_54
+    for v111, v112 in pairs(v110) do
+        v110[v111] = v112 * 0
+    end
+    local v113 = v_u_55
+    for v114, v115 in pairs(v113) do
+        v113[v114] = v115 * 0
+    end
+    local v116 = v_u_56
+    for v117, v118 in pairs(v116) do
+        v116[v117] = v118 * 0
+    end
+    v_u_57.PanDelta = Vector2.new()
+    v_u_58 = {}
+    for _, v119 in ipairs(v_u_59) do
+        v119:Disconnect()
+    end
+    v_u_59 = {}
+    v_u_8:UnbindAction("FreecamKeyboard")
+    v_u_8:UnbindAction("FreecamMousePan")
+    v_u_8:UnbindAction("FreecamMouseWheel")
+    v_u_8:UnbindAction("FreecamGamepadButton")
+    v_u_8:UnbindAction("FreecamGamepadTrigger")
+    v_u_8:UnbindAction("FreecamGamepadThumbstick")
+end
+local v_u_120 = RaycastParams.new()
+v_u_120.FilterType = Enum.RaycastFilterType.Exclude
+v_u_120.FilterDescendantsInstances = {}
+local v_u_121 = Color3.fromRGB(255, 60, 60)
+local v_u_122 = Color3.fromRGB(255, 90, 90)
+local v_u_123 = {}
+local function v_u_132() -- name: updateSeekerHighlights
+    -- upvalues: (copy) v_u_123, (copy) v_u_9, (ref) v_u_16, (copy) v_u_121, (copy) v_u_122
+    local v124 = workspace.CurrentCamera.CFrame.Position
+    for v125, v126 in pairs(v_u_123) do
+        local v127 = v125.Parent
+        if v127 then
+            v127 = v125.Character
+        end
+        if not v127 or (v125:GetAttribute("RoundRole") ~= "Seeker" or v126.Parent ~= v127) then
+            v126:Destroy()
+            v_u_123[v125] = nil
+        end
+    end
+    for _, v128 in ipairs(v_u_9:GetPlayers()) do
+        if v128 ~= v_u_16 and v128:GetAttribute("RoundRole") == "Seeker" then
+            local v129 = v128.Character
+            local v130
+            if v129 then
+                v130 = v129:FindFirstChild("HumanoidRootPart")
+            else
+                v130 = v129
+            end
+            if v129 and v130 then
+                local v131 = v_u_123[v128]
+                if not v131 then
+                    v131 = Instance.new("Highlight")
+                    v131.Name = "FreecamSeekerHighlight"
+                    v131.FillColor = v_u_121
+                    v131.OutlineColor = v_u_122
+                    v131.FillTransparency = 0.55
+                    v131.OutlineTransparency = 0
+                    v131.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    v131:SetAttribute("PaintOrSeekFX", true)
+                    v131.Parent = v129
+                    v_u_123[v128] = v131
+                end
+                v131.Enabled = (v130.Position - v124).Magnitude <= 120
+            end
+        end
+    end
+end
+local function v_u_149(p133) -- name: StepFreecam
+    -- upvalues: (ref) v_u_16, (copy) v_u_120, (copy) v_u_132, (copy) v_u_51, (copy) v_u_12, (ref) v_u_45, (ref) v_u_46, (copy) v_u_48, (copy) v_u_50, (ref) v_u_47, (copy) v_u_4, (copy) v_u_7, (copy) v_u_6, (copy) v_u_2, (copy) v_u_27, (copy) v_u_13, (ref) v_u_17
+    local v134 = v_u_16.Character
+    if v134 then
+        v_u_120.FilterDescendantsInstances = { v134 }
+    end
+    v_u_132()
+    local v135 = v_u_51.Vel(p133)
+    if v_u_12.TouchEnabled and v134 then
+        local v136 = v134:FindFirstChildOfClass("Humanoid")
+        if v136 and v136.MoveDirection.Magnitude > 0.01 then
+            local v137 = (CFrame.new(v_u_45) * CFrame.fromOrientation(v_u_46.x, v_u_46.y, 0)):VectorToObjectSpace(v136.MoveDirection)
+            local v138 = v137.X
+            local v139 = v137.Z
+            v135 = v135 + Vector3.new(v138, 0, v139)
+        end
+    end
+    local v140 = v_u_48:Update(p133, v135)
+    local v141 = v_u_51.Pan(p133)
+    local v142 = v_u_50:Update(p133, v_u_51.Fov(p133))
+    local v143 = v_u_6(0.7002075382097097 / v_u_7((v_u_4(v_u_47 / 2))))
+    v_u_47 = v_u_2(v_u_47 + v142 * 300 * (p133 / v143), 1, 120)
+    v_u_46 = v_u_46 + v141 * v_u_27 * (p133 / v143)
+    v_u_46 = Vector2.new(v_u_2(v_u_46.x, -1.5707963267948966, 1.5707963267948966), v_u_46.y % 6.283185307179586)
+    local v144 = (CFrame.new(v_u_45) * CFrame.fromOrientation(v_u_46.x, v_u_46.y, 0) * CFrame.new(v140 * Vector3.new(64, 64, 64) * p133)).p
+    local v145 = v144 - v_u_45
+    local v146 = v145.Magnitude
+    if v146 > 0.001 then
+        local v147 = v_u_13:Spherecast(v_u_45, 0.5, v145.Unit * v146, v_u_120) or v_u_13:Raycast(v_u_45, v145.Unit * v146, v_u_120)
+        if v147 then
+            v144 = v147.Position + v147.Normal * 0.6
+        end
+    end
+    v_u_45 = v144
+    local v148 = CFrame.new(v144) * CFrame.fromOrientation(v_u_46.x, v_u_46.y, 0)
+    v_u_17.CFrame = v148
+    v_u_17.Focus = v148
+    v_u_17.FieldOfView = v_u_47
+end
+local v_u_150 = {}
+local v_u_151 = nil
+local v_u_152 = nil
+local v_u_153 = nil
+local v_u_154 = nil
+local v_u_155 = nil
+local v_u_156 = nil
+local v_u_157 = nil
+local v_u_158 = nil
+local v_u_159 = {}
+local v_u_160 = {
+    ["Backpack"] = true,
+    ["Chat"] = true,
+    ["Health"] = true,
+    ["PlayerList"] = true
+}
+local v_u_161 = {
+    ["BadgesNotificationsActive"] = true,
+    ["PointsNotificationsActive"] = true
+}
+function v_u_150.Push() -- name: Push
+    -- upvalues: (copy) v_u_160, (copy) v_u_11, (copy) v_u_161, (ref) v_u_16, (copy) v_u_15, (copy) v_u_159, (ref) v_u_155, (ref) v_u_17, (ref) v_u_156, (ref) v_u_157, (ref) v_u_158, (ref) v_u_152, (ref) v_u_154, (ref) v_u_153, (ref) v_u_21, (copy) v_u_9, (copy) v_u_14, (ref) v_u_151, (copy) v_u_12
+    for v162 in pairs(v_u_160) do
+        v_u_160[v162] = v_u_11:GetCoreGuiEnabled(Enum.CoreGuiType[v162])
+        v_u_11:SetCoreGuiEnabled(Enum.CoreGuiType[v162], false)
+    end
+    for v163 in pairs(v_u_161) do
+        v_u_161[v163] = v_u_11:GetCore(v163)
+        v_u_11:SetCore(v163, false)
+    end
+    local v164 = v_u_16:FindFirstChildOfClass("PlayerGui")
+    if v164 then
+        for _, v165 in pairs(v164:GetChildren()) do
+            if v165:IsA("ScreenGui") and (v165.Enabled and not v_u_15[v165.Name]) then
+                v_u_159[#v_u_159 + 1] = v165
+                v165.Enabled = false
+            end
+        end
+    end
+    v_u_155 = v_u_17.FieldOfView
+    v_u_17.FieldOfView = 70
+    v_u_156 = v_u_16.CameraMode
+    v_u_157 = v_u_16.CameraMaxZoomDistance
+    v_u_158 = v_u_16.CameraMinZoomDistance
+    v_u_16.CameraMode = Enum.CameraMode.Classic
+    v_u_16.CameraMaxZoomDistance = 400
+    v_u_16.CameraMinZoomDistance = 0.5
+    v_u_152 = v_u_17.CameraType
+    v_u_17.CameraType = Enum.CameraType.Custom
+    v_u_154 = v_u_17.CFrame
+    v_u_153 = v_u_17.Focus
+    if v_u_21 then
+        local v166 = v_u_9.LocalPlayer.DevEnableMouseLock
+        local v167 = v_u_9.LocalPlayer.DevComputerMovementMode == Enum.DevComputerMovementMode.Scriptable
+        local v168 = v166 and (v_u_14.ControlMode == Enum.ControlMode.MouseLockSwitch and v_u_14.ComputerMovementMode ~= Enum.ComputerMovementMode.ClickToMove)
+        if v168 then
+            v168 = not v167
+        end
+        if v168 then
+            v_u_151 = Enum.MouseBehavior.Default
+            ::l31::
+            v_u_12.MouseBehavior = Enum.MouseBehavior.Default
+            return
+        end
+    end
+    v_u_151 = v_u_12.MouseBehavior
+    goto l31
+end
+function v_u_150.Pop() -- name: Pop
+    -- upvalues: (copy) v_u_160, (copy) v_u_11, (copy) v_u_161, (copy) v_u_159, (ref) v_u_17, (ref) v_u_155, (ref) v_u_16, (ref) v_u_156, (ref) v_u_157, (ref) v_u_158, (ref) v_u_152, (ref) v_u_154, (ref) v_u_153, (copy) v_u_12, (ref) v_u_151
+    for v169, v170 in pairs(v_u_160) do
+        v_u_11:SetCoreGuiEnabled(Enum.CoreGuiType[v169], v170)
+    end
+    for v171, v172 in pairs(v_u_161) do
+        v_u_11:SetCore(v171, v172)
+    end
+    for _, v173 in pairs(v_u_159) do
+        if v173.Parent then
+            v173.Enabled = true
+        end
+    end
+    v_u_17.FieldOfView = v_u_155
+    v_u_155 = nil
+    v_u_16.CameraMode = v_u_156
+    v_u_16.CameraMaxZoomDistance = v_u_157
+    v_u_16.CameraMinZoomDistance = v_u_158
+    v_u_156 = nil
+    v_u_157 = nil
+    v_u_158 = nil
+    v_u_17.CameraType = v_u_152
+    v_u_152 = nil
+    v_u_17.CFrame = v_u_154
+    v_u_154 = nil
+    v_u_17.Focus = v_u_153
+    v_u_153 = nil
+    v_u_12.MouseBehavior = v_u_151
+    v_u_151 = nil
+end
+local function v_u_180(p174) -- name: SafeStartPosition
+    -- upvalues: (ref) v_u_16, (copy) v_u_120, (copy) v_u_13
+    local v175 = v_u_16.Character
+    local v176 = not v175 or v175:FindFirstChild("Head") or (v175:FindFirstChild("HumanoidRootPart") or v175.PrimaryPart)
+    if v176 then
+        v_u_120.FilterDescendantsInstances = { v175 }
+        local v177 = p174 - v176.Position
+        local v178 = v177.Magnitude
+        if v178 <= 0.001 then
+            return p174
+        else
+            local v179 = v_u_13:Spherecast(v176.Position, 0.5, v177.Unit * v178, v_u_120)
+            if v179 then
+                return v179.Position + v179.Normal * 0.6
+            else
+                return p174
+            end
+        end
+    else
+        return p174
+    end
+end
+local function v_u_182() -- name: StartFreecam
+    -- upvalues: (ref) v_u_24, (ref) v_u_17, (ref) v_u_46, (ref) v_u_45, (copy) v_u_180, (ref) v_u_47, (copy) v_u_48, (copy) v_u_49, (copy) v_u_50, (copy) v_u_150, (copy) v_u_10, (copy) v_u_149, (copy) v_u_51
+    if v_u_24 then
+        script:SetAttribute("FreecamEnabled", true)
+    end
+    local v181 = v_u_17.CFrame
+    v_u_46 = Vector2.new(v181:toEulerAnglesYXZ())
+    v_u_45 = v_u_180(v181.p)
+    v_u_47 = v_u_17.FieldOfView
+    v_u_48:Reset((Vector3.new()))
+    v_u_49:Reset(Vector2.new())
+    v_u_50:Reset(0)
+    v_u_150.Push()
+    v_u_10:BindToRenderStep("Freecam", Enum.RenderPriority.Camera.Value, v_u_149)
+    v_u_51.StartCapture()
+end
+local v_u_183 = false
+local function v185() -- name: ToggleFreecam
+    -- upvalues: (ref) v_u_183, (ref) v_u_24, (copy) v_u_51, (copy) v_u_10, (copy) v_u_150, (copy) v_u_123, (copy) v_u_182
+    if v_u_183 then
+        if v_u_24 then
+            script:SetAttribute("FreecamEnabled", false)
+        end
+        v_u_51.StopCapture()
+        v_u_10:UnbindFromRenderStep("Freecam")
+        v_u_150.Pop()
+        for _, v184 in pairs(v_u_123) do
+            v184:Destroy()
+        end
+        table.clear(v_u_123)
+    else
+        v_u_182()
+    end
+    v_u_183 = not v_u_183
+    return v_u_183
+end
+if v_u_24 then
+    script:SetAttribute("FreecamEnabled", v_u_183)
+end
+return v185
+
+        local function v99(p97, _)
+            -- upvalues: (ref) v_u_13, (ref) v_u_58
+            local v98 = v_u_13.CurrentCamera.ViewportSize.X
+            if p97.Position.X >= v98 / 2 then
+                v_u_58[p97] = {
+                    ["prevPos"] = p97.Position
+                }
+            end
+        end
+        table.insert(v95, v96:Connect(v99))
+        local v100 = v_u_59
+        local v101 = v_u_12.TouchMoved
+        local function v105(p102, _)
+            -- upvalues: (ref) v_u_58, (ref) v_u_57
+            local v103 = v_u_58[p102]
+            if v103 then
+                local v104 = p102.Position - v103.prevPos
+                v_u_57.PanDelta = v_u_57.PanDelta + Vector2.new(-v104.Y, -v104.X)
+                v103.prevPos = p102.Position
+            end
+        end
+        table.insert(v100, v101:Connect(v105))
+        local v106 = v_u_59
+        local v107 = v_u_12.TouchEnded
+        local function v109(p108, _)
+            -- upvalues: (ref) v_u_58
+            v_u_58[p108] = nil
+        end
+        table.insert(v106, v107:Connect(v109))
+    end
+end
+function v_u_51.StopCapture() -- name: StopCapture
+    -- upvalues: (ref) v_u_63, (copy) v_u_54, (copy) v_u_55, (copy) v_u_56, (copy) v_u_57, (ref) v_u_58, (ref) v_u_59, (copy) v_u_8
+    v_u_63 = 1
+    local v110 = v_u_54
+    for v111, v112 in pairs(v110) do
+        v110[v111] = v112 * 0
+    end
+    local v113 = v_u_55
+    for v114, v115 in pairs(v113) do
+        v113[v114] = v115 * 0
+    end
+    local v116 = v_u_56
+    for v117, v118 in pairs(v116) do
+        v116[v117] = v118 * 0
+    end
+    v_u_57.PanDelta = Vector2.new()
+    v_u_58 = {}
+    for _, v119 in ipairs(v_u_59) do
+        v119:Disconnect()
+    end
+    v_u_59 = {}
+    v_u_8:UnbindAction("FreecamKeyboard")
+    v_u_8:UnbindAction("FreecamMousePan")
+    v_u_8:UnbindAction("FreecamMouseWheel")
+    v_u_8:UnbindAction("FreecamGamepadButton")
+    v_u_8:UnbindAction("FreecamGamepadTrigger")
+    v_u_8:UnbindAction("FreecamGamepadThumbstick")
+end
+local v_u_120 = RaycastParams.new()
+v_u_120.FilterType = Enum.RaycastFilterType.Exclude
+v_u_120.FilterDescendantsInstances = {}
+local v_u_121 = Color3.fromRGB(255, 60, 60)
+local v_u_122 = Color3.fromRGB(255, 90, 90)
+local v_u_123 = {}
+local function v_u_132() -- name: updateSeekerHighlights
+    -- upvalues: (copy) v_u_123, (copy) v_u_9, (ref) v_u_16, (copy) v_u_121, (copy) v_u_122
+    local v124 = workspace.CurrentCamera.CFrame.Position
+    for v125, v126 in pairs(v_u_123) do
+        local v127 = v125.Parent
+        if v127 then
+            v127 = v125.Character
+        end
+        if not v127 or (v125:GetAttribute("RoundRole") ~= "Seeker" or v126.Parent ~= v127) then
+            v126:Destroy()
+            v_u_123[v125] = nil
+        end
+    end
+    for _, v128 in ipairs(v_u_9:GetPlayers()) do
+        if v128 ~= v_u_16 and v128:GetAttribute("RoundRole") == "Seeker" then
+            local v129 = v128.Character
+            local v130
+            if v129 then
+                v130 = v129:FindFirstChild("HumanoidRootPart")
+            else
+                v130 = v129
+            end
+            if v129 and v130 then
+                local v131 = v_u_123[v128]
+                if not v131 then
+                    v131 = Instance.new("Highlight")
+                    v131.Name = "FreecamSeekerHighlight"
+                    v131.FillColor = v_u_121
+                    v131.OutlineColor = v_u_122
+                    v131.FillTransparency = 0.55
+                    v131.OutlineTransparency = 0
+                    v131.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    v131:SetAttribute("PaintOrSeekFX", true)
+                    v131.Parent = v129
+                    v_u_123[v128] = v131
+                end
+                v131.Enabled = (v130.Position - v124).Magnitude <= 120
+            end
+        end
+    end
+end
+local function v_u_149(p133) -- name: StepFreecam
+    -- upvalues: (ref) v_u_16, (copy) v_u_120, (copy) v_u_132, (copy) v_u_51, (copy) v_u_12, (ref) v_u_45, (ref) v_u_46, (copy) v_u_48, (copy) v_u_50, (ref) v_u_47, (copy) v_u_4, (copy) v_u_7, (copy) v_u_6, (copy) v_u_2, (copy) v_u_27, (copy) v_u_13, (ref) v_u_17
+    local v134 = v_u_16.Character
+    if v134 then
+        v_u_120.FilterDescendantsInstances = { v134 }
+    end
+    v_u_132()
+    local v135 = v_u_51.Vel(p133)
+    if v_u_12.TouchEnabled and v134 then
+        local v136 = v134:FindFirstChildOfClass("Humanoid")
+        if v136 and v136.MoveDirection.Magnitude > 0.01 then
+            local v137 = (CFrame.new(v_u_45) * CFrame.fromOrientation(v_u_46.x, v_u_46.y, 0)):VectorToObjectSpace(v136.MoveDirection)
+            local v138 = v137.X
+            local v139 = v137.Z
+            v135 = v135 + Vector3.new(v138, 0, v139)
+        end
+    end
+    local v140 = v_u_48:Update(p133, v135)
+    local v141 = v_u_51.Pan(p133)
+    local v142 = v_u_50:Update(p133, v_u_51.Fov(p133))
+    local v143 = v_u_6(0.7002075382097097 / v_u_7((v_u_4(v_u_47 / 2))))
+    v_u_47 = v_u_2(v_u_47 + v142 * 300 * (p133 / v143), 1, 120)
+    v_u_46 = v_u_46 + v141 * v_u_27 * (p133 / v143)
+    v_u_46 = Vector2.new(v_u_2(v_u_46.x, -1.5707963267948966, 1.5707963267948966), v_u_46.y % 6.283185307179586)
+    local v144 = (CFrame.new(v_u_45) * CFrame.fromOrientation(v_u_46.x, v_u_46.y, 0) * CFrame.new(v140 * Vector3.new(64, 64, 64) * p133)).p
+    local v145 = v144 - v_u_45
+    local v146 = v145.Magnitude
+    if v146 > 0.001 then
+        local v147 = v_u_13:Spherecast(v_u_45, 0.5, v145.Unit * v146, v_u_120) or v_u_13:Raycast(v_u_45, v145.Unit * v146, v_u_120)
+        if v147 then
+            v144 = v147.Position + v147.Normal * 0.6
+        end
+    end
+    v_u_45 = v144
+    local v148 = CFrame.new(v144) * CFrame.fromOrientation(v_u_46.x, v_u_46.y, 0)
+    v_u_17.CFrame = v148
+    v_u_17.Focus = v148
+    v_u_17.FieldOfView = v_u_47
+end
+local v_u_150 = {}
+local v_u_151 = nil
+local v_u_152 = nil
+local v_u_153 = nil
+local v_u_154 = nil
+local v_u_155 = nil
+local v_u_156 = nil
+local v_u_157 = nil
+local v_u_158 = nil
+local v_u_159 = {}
+local v_u_160 = {
+    ["Backpack"] = true,
+    ["Chat"] = true,
+    ["Health"] = true,
+    ["PlayerList"] = true
+}
+local v_u_161 = {
+    ["BadgesNotificationsActive"] = true,
+    ["PointsNotificationsActive"] = true
+}
+function v_u_150.Push() -- name: Push
+    -- upvalues: (copy) v_u_160, (copy) v_u_11, (copy) v_u_161, (ref) v_u_16, (copy) v_u_15, (copy) v_u_159, (ref) v_u_155, (ref) v_u_17, (ref) v_u_156, (ref) v_u_157, (ref) v_u_158, (ref) v_u_152, (ref) v_u_154, (ref) v_u_153, (ref) v_u_21, (copy) v_u_9, (copy) v_u_14, (ref) v_u_151, (copy) v_u_12
+    for v162 in pairs(v_u_160) do
+        v_u_160[v162] = v_u_11:GetCoreGuiEnabled(Enum.CoreGuiType[v162])
+        v_u_11:SetCoreGuiEnabled(Enum.CoreGuiType[v162], false)
+    end
+    for v163 in pairs(v_u_161) do
+        v_u_161[v163] = v_u_11:GetCore(v163)
+        v_u_11:SetCore(v163, false)
+    end
+    local v164 = v_u_16:FindFirstChildOfClass("PlayerGui")
+    if v164 then
+        for _, v165 in pairs(v164:GetChildren()) do
+            if v165:IsA("ScreenGui") and (v165.Enabled and not v_u_15[v165.Name]) then
+                v_u_159[#v_u_159 + 1] = v165
+                v165.Enabled = false
+            end
+        end
+    end
+    v_u_155 = v_u_17.FieldOfView
+    v_u_17.FieldOfView = 70
+    v_u_156 = v_u_16.CameraMode
+    v_u_157 = v_u_16.CameraMaxZoomDistance
+    v_u_158 = v_u_16.CameraMinZoomDistance
+    v_u_16.CameraMode = Enum.CameraMode.Classic
+    v_u_16.CameraMaxZoomDistance = 400
+    v_u_16.CameraMinZoomDistance = 0.5
+    v_u_152 = v_u_17.CameraType
+    v_u_17.CameraType = Enum.CameraType.Custom
+    v_u_154 = v_u_17.CFrame
+    v_u_153 = v_u_17.Focus
+    if v_u_21 then
+        local v166 = v_u_9.LocalPlayer.DevEnableMouseLock
+        local v167 = v_u_9.LocalPlayer.DevComputerMovementMode == Enum.DevComputerMovementMode.Scriptable
+        local v168 = v166 and (v_u_14.ControlMode == Enum.ControlMode.MouseLockSwitch and v_u_14.ComputerMovementMode ~= Enum.ComputerMovementMode.ClickToMove)
+        if v168 then
+            v168 = not v167
+        end
+        if v168 then
+            v_u_151 = Enum.MouseBehavior.Default
+            ::l31::
+            v_u_12.MouseBehavior = Enum.MouseBehavior.Default
+            return
+        end
+    end
+    v_u_151 = v_u_12.MouseBehavior
+    goto l31
+end
+function v_u_150.Pop() -- name: Pop
+    -- upvalues: (copy) v_u_160, (copy) v_u_11, (copy) v_u_161, (copy) v_u_159, (ref) v_u_17, (ref) v_u_155, (ref) v_u_16, (ref) v_u_156, (ref) v_u_157, (ref) v_u_158, (ref) v_u_152, (ref) v_u_154, (ref) v_u_153, (copy) v_u_12, (ref) v_u_151
+    for v169, v170 in pairs(v_u_160) do
+        v_u_11:SetCoreGuiEnabled(Enum.CoreGuiType[v169], v170)
+    end
+    for v171, v172 in pairs(v_u_161) do
+        v_u_11:SetCore(v171, v172)
+    end
+    for _, v173 in pairs(v_u_159) do
+        if v173.Parent then
+            v173.Enabled = true
+        end
+    end
+    v_u_17.FieldOfView = v_u_155
+    v_u_155 = nil
+    v_u_16.CameraMode = v_u_156
+    v_u_16.CameraMaxZoomDistance = v_u_157
+    v_u_16.CameraMinZoomDistance = v_u_158
+    v_u_156 = nil
+    v_u_157 = nil
+    v_u_158 = nil
+    v_u_17.CameraType = v_u_152
+    v_u_152 = nil
+    v_u_17.CFrame = v_u_154
+    v_u_154 = nil
+    v_u_17.Focus = v_u_153
+    v_u_153 = nil
+    v_u_12.MouseBehavior = v_u_151
+    v_u_151 = nil
+end
+local function v_u_180(p174) -- name: SafeStartPosition
+    -- upvalues: (ref) v_u_16, (copy) v_u_120, (copy) v_u_13
+    local v175 = v_u_16.Character
+    local v176 = not v175 or v175:FindFirstChild("Head") or (v175:FindFirstChild("HumanoidRootPart") or v175.PrimaryPart)
+    if v176 then
+        v_u_120.FilterDescendantsInstances = { v175 }
+        local v177 = p174 - v176.Position
+        local v178 = v177.Magnitude
+        if v178 <= 0.001 then
+            return p174
+        else
+            local v179 = v_u_13:Spherecast(v176.Position, 0.5, v177.Unit * v178, v_u_120)
+            if v179 then
+                return v179.Position + v179.Normal * 0.6
+            else
+                return p174
+            end
+        end
+    else
+        return p174
+    end
+end
+local function v_u_182() -- name: StartFreecam
+    -- upvalues: (ref) v_u_24, (ref) v_u_17, (ref) v_u_46, (ref) v_u_45, (copy) v_u_180, (ref) v_u_47, (copy) v_u_48, (copy) v_u_49, (copy) v_u_50, (copy) v_u_150, (copy) v_u_10, (copy) v_u_149, (copy) v_u_51
+    if v_u_24 then
+        script:SetAttribute("FreecamEnabled", true)
+    end
+    local v181 = v_u_17.CFrame
+    v_u_46 = Vector2.new(v181:toEulerAnglesYXZ())
+    v_u_45 = v_u_180(v181.p)
+    v_u_47 = v_u_17.FieldOfView
+    v_u_48:Reset((Vector3.new()))
+    v_u_49:Reset(Vector2.new())
+    v_u_50:Reset(0)
+    v_u_150.Push()
+    v_u_10:BindToRenderStep("Freecam", Enum.RenderPriority.Camera.Value, v_u_149)
+    v_u_51.StartCapture()
+end
+local v_u_183 = false
+local function v185() -- name: ToggleFreecam
+    -- upvalues: (ref) v_u_183, (ref) v_u_24, (copy) v_u_51, (copy) v_u_10, (copy) v_u_150, (copy) v_u_123, (copy) v_u_182
+    if v_u_183 then
+        if v_u_24 then
+            script:SetAttribute("FreecamEnabled", false)
+        end
+        v_u_51.StopCapture()
+        v_u_10:UnbindFromRenderStep("Freecam")
+        v_u_150.Pop()
+        for _, v184 in pairs(v_u_123) do
+            v184:Destroy()
+        end
+        table.clear(v_u_123)
+    else
+        v_u_182()
+    end
+    v_u_183 = not v_u_183
+    return v_u_183
+end
+if v_u_24 then
+    script:SetAttribute("FreecamEnabled", v_u_183)
+end
+return v185
