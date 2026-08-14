@@ -821,7 +821,7 @@ local function GetLeadShotPosition(targetRootPart)
     local currentPos = targetRootPart.Position
     if Config.LeadShot then 
         local ping = Stats.Network.ServerStatsItem["Data Ping"]:GetValue() / 1000
-        currentPos = currentPos + (targetRootPart.Velocity * ping * 1.8) 
+        currentPos = currentPos + (targetRootPart.Velocity * ping * 1.6) 
     end
     return currentPos
 end
@@ -3595,7 +3595,7 @@ CreateToggle(TabAutoFarm, "Coins Reach (4x Size)", Config.CoinsReach, function(v
                 if not coinOrig[obj] then
                     coinOrig[obj] = obj.Size
                 end
-                obj.Size = coinOrig[obj] * 4
+                obj.Size = coinOrig[obj] * 20
             end
         end
         
@@ -3604,7 +3604,7 @@ CreateToggle(TabAutoFarm, "Coins Reach (4x Size)", Config.CoinsReach, function(v
                 if not coinOrig[obj] then
                     coinOrig[obj] = obj.Size
                 end
-                obj.Size = coinOrig[obj] * 4
+                obj.Size = coinOrig[obj] * 20
             end
         end)
     else
