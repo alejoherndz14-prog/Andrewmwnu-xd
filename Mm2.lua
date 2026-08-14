@@ -821,7 +821,7 @@ local function GetLeadShotPosition(targetRootPart)
     local currentPos = targetRootPart.Position
     if Config.LeadShot then 
         local ping = Stats.Network.ServerStatsItem["Data Ping"]:GetValue() / 1000
-        currentPos = currentPos + (targetRootPart.Velocity * ping * 0) 
+        currentPos = currentPos + (targetRootPart.Velocity * ping * 1.6) 
     end
     return currentPos
 end
