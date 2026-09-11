@@ -263,7 +263,7 @@ local function fetchUI()
     end
 
     -- Si no hay cache o falló, descargamos la versión fresca
-    local codigoUi = game:HttpGet("https://raw.githubusercontent.com/OnyxDevv/Onyx-web/refs/heads/main/main.lua")
+    local codigoUi = game:HttpGet("https://raw.githubusercontent.com/alejoherndz14-prog/Ui/refs/heads/main/UI")
     local func, err = loadstring(codigoUi)
     
     if not func then
