@@ -2749,8 +2749,8 @@ local function onInputBeganAntiSilent(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode[Config.AntiSilentAimKey] then
         Config.AntiSilentAim = not Config.AntiSilentAim
-        MatzzNotify("ANTI SILENT AIM", Config.AntiSilentAim and "Ativado" or "Desativado", 2)
-    elseif input.KeyCode == Enum.KeyCode.Equal then -- tecla "="
+        MatzzNotify("ANTI SILENT AIM", Config.AntiSilentAim and "Activado" or "Desactivado", 2)
+    elseif input.KeyCode == Enum.KeyCode.Equals then -- ✅ CORRECTO
         game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer)
     end
 end
